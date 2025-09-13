@@ -1,0 +1,151 @@
+Read Me
+
+============================================================================
+
+🚀 INSTALLATION INSTRUCTIONS FOR MAC
+
+The purpose of these instructions is to allow you to run the Capstone Computer Vision (CCV) project by automatically installing dependencies (i.e. languages and modules) onto your computer. 
+
+
+---
+
+What this does:
+
+- Checks if Python is installed.
+- If not, downloads and installs Python automatically.
+- Runs a setup script to install all other necessary software.
+- Shows you the progress as it goes.
+
+There is a guide for technical and non-technical users
+
+---
+
+
+\\\\\\\ For Technical users \\\\\\\
+
+---
+
+1. Open the Terminal (Applications > Utilities > Terminal)
+
+2. In terminal you will need to go to the folder where you extracted this file. For example:
+   cd ~/Downloads/my-installer-folder
+
+3. Run the install script:
+   ./install.sh
+
+📝 If you see a permission error, run this first:
+   chmod +x install.sh
+
+Then:
+   ./install.sh
+
+✅ This will check and install Python, pip, and all required packages automatically.
+
+--- 
+
+
+/////////////// For Non-Technical Users ///////////////////
+
+---
+
+Step 1: Copy the Installer Folder to Your Mac
+
+- If you received the installer on a USB drive, copy the entire installer folder (for example, “my-installer-folder”) to your Desktop or somewhere easy to find.
+
+---
+
+Step 2: Open Terminal and Go to the Installer Folder
+
+Terminal is the app where you type commands to tell your Mac what to do.
+
+Here’s how to open Terminal in the installer folder:
+
+1. Find the installer folder in Finder:
+   - Click the Finder icon (a smiling face) in your dock.
+   - Go to where you saved the installer folder (like Desktop).
+
+2. Open Terminal at that folder:
+
+   **Option A (Easy, if available):**
+   - Right-click (or Control-click) the installer folder.
+   - Look for “New Terminal at Folder” or “Open in Terminal” and click it.
+     - Terminal will open and automatically go to your folder.
+
+   **Option B (If Option A is not available):**
+   - Open Terminal manually:
+     - Open Finder > Applications > Utilities > Terminal.
+   - In Terminal, type:  
+     ```
+     cd 
+     ```
+     (include a space after `cd`, but don’t press Enter yet)
+   - Then drag the installer folder from Finder into the Terminal window.  
+     This will paste the folder’s full location.
+   - Press Enter.
+
+Example Terminal command you might see: cd /Users/yourname/Desktop/my-installer-folder
+
+
+---
+
+Step 3: Make the Installer Script Executable (Only needed once)
+
+Before you run the installer, type this command in Terminal and press Enter:
+
+chmod +x install.sh
+
+
+This tells your Mac it’s okay to run the installer script.
+
+---
+
+Step 4: Run the Installer
+
+Type this command and press Enter:
+
+./install.sh
+
+
+The installer will now:
+
+- Check if Python3 is installed; if not, it will install it for you.
+- Install all necessary software packages automatically.
+- Make sure everything your software needs is ready to go.
+
+---
+
+Step 5: Wait for Installation to Finish
+
+The installer will show messages as it works. When it’s done, you’ll see:
+
+
+If you see any error messages, please note what they say and ask for help.
+
+---
+
+Additional Information:
+
+- Make sure your Mac is connected to the internet while installing.
+- The installer uses a tool called Homebrew to help install Python if needed.  
+  If Homebrew is not installed, the script will try install Homebrew for you, if it
+  cannot, you can visit https://brew.sh/ for easy instructions on how to install Homebrew.
+
+
+---
+
+Thank you for using our software!
+
+If you need help, please contact support.
+
+
+
+
+======================================================================
+
+Need help? Contact: your-email@example.com
+(last updated 26.05.25)
+
+
+---
+
+End of README

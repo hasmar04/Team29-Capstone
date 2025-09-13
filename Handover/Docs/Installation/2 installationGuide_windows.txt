@@ -1,0 +1,60 @@
+README - Windows Installation Guide
+
+Welcome!
+This guide will help you install everything you need to run the project on a Windows computer.
+
+---
+
+What this does:
+
+- Checks if Python is installed.
+- If not, downloads and installs Python automatically.
+- Runs a setup script to install all other necessary software.
+- Shows you the progress as it goes.
+
+---
+
+How to run the installer:
+
+1. Locate the files
+   Find the folder where you saved the installation files on your computer or USB drive.
+
+2. Run the installer script
+   - Double-click on the file named install.bat.
+   - A new window will open and start running commands automatically.
+
+3. Wait for the process to finish
+   - The window will show messages about what is happening (like installing Python or packages).
+   - When it finishes, it will say “Setup complete” or pause waiting for you to press a key.
+
+4. Press any key
+   - This will close the window.
+
+---
+
+Notes:
+
+- You need an internet connection because it downloads Python and other software.
+- The script installs Python quietly, so you won’t see the usual installer windows.
+- If Python is already installed, it will skip that step and move directly to setup.
+- If anything goes wrong, the window will show an error message.
+
+---
+
+How to check if it worked:
+
+- Open a Command Prompt (press the Windows key, type cmd, and press Enter).
+- Type:
+  python --version
+- You should see a message with the Python version number.
+- Also, your project should be ready to run now.
+
+---
+
+Need help?
+
+If you get stuck or see error messages, please contact the person who gave you these files or refer to the project support.
+
+---
+
+Thank you for using this installer!

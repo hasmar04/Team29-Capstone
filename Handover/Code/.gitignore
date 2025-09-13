@@ -1,0 +1,12 @@
+./object_counting_output.avi
+video_output.avi
+object_counting_output.avi
+object_counting_output.avi
+ruck_dataset/
+lineout_dataset/
+ball_dataset/
+inference/reds_ruck_videos
+inference/reds_lineout_videos
+inference/camera_callibration
+inference/lineouts
+src/__pycache__
