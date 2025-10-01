@@ -487,5 +487,3 @@ For issues or questions:
 3. Contact the development team
 
 ---
-
-**Note**: This system is designed for rugby analysis and coaching purposes. Detections should be verified by qualified officials for official match decisions.
