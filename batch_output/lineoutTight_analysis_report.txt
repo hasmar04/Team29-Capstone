@@ -1,0 +1,22 @@
+================================================================================
+RUGBY OFFSIDE DETECTION ANALYSIS REPORT
+================================================================================
+
+Video File: lineoutTight.gif
+Processing Date: 2025-10-01 19:43:09
+Total Frames Analysed: 132
+Total Events Detected: 0
+
+--------------------------------------------------------------------------------
+
+No offside events detected in this video.
+
+SUMMARY STATISTICS:
+================================================================================
+Total Ruck Events: 0
+Total Lineout Events: 0
+Total Offside Players Across All Events: 0
+
+================================================================================
+End of Report
+================================================================================

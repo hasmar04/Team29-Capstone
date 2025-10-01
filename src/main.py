@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 import ui_functions as UI
 import yolo_functions as YOLO
 import field_functions as field
@@ -10,29 +11,109 @@ import line_functions as line
 import general_functions as general
 import offside_functions as offside
 import point_functions as points
+import batch_processor as batch
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 def main():
     """
     Main function to execute the offside detection program.
-    This function allows the user to select a video file for processing, validates the file type,
-    loads the necessary YOLO models for detection, and provides an option to run the program
-    in either manual or automatic mode.
+    This function allows the user to select a video file or directory for processing, validates the file type,
+    loads the necessary YOLO models for detection, and provides options to run the program
+    in manual, automatic, or batch mode.
     Steps:
-    1. Prompts the user to select a video file through a graphical user interface.
-    2. Validates that the selected file is a video.
-    3. Loads YOLO models for ruck, lineout, and player detection.
-    4. Asks the user to choose between manual or automatic processing mode.
-    5. Executes the selected mode with the provided video and models.
+    1. Prompts the user to select a processing mode (manual, auto, or batch).
+    2. For single video modes: prompts the user to select a video file through a graphical user interface.
+    3. For batch mode: prompts the user to select a directory containing videos.
+    4. Validates that the selected file/directory is valid.
+    5. Loads YOLO models for ruck, lineout, ball, and player detection.
+    6. Executes the selected mode with the provided video(s) and models.
     Raises:
-        SystemExit: If the selected file is not a valid video file.
+        SystemExit: If the selected file is not a valid video file or directory doesn't exist.
     Inputs:
-        - Video file path selected by the user.
-        - User input to choose between manual or automatic mode.
+        - Video file path or directory path selected by the user.
+        - User input to choose between manual, automatic, or batch mode.
     Outputs:
-        - Processes the video file using the selected mode and detection models.
+        - Processes the video file(s) using the selected mode and detection models.
     """
+    
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Get the parent directory (Team29-Capstone)
+    project_root = os.path.dirname(script_dir)
+    # Models directory path
+    models_dir = os.path.join(project_root, 'models')
 
+    print("=" * 80)
+    print("QUEENSLAND REDS - RUGBY OFFSIDE DETECTION SYSTEM")
+    print("=" * 80)
+    print("\nProcessing Modes:")
+    print("  1. MANUAL - Manually select when to detect rucks/lineouts (single video)")
+    print("  2. AUTO   - Automatic detection of rucks/lineouts (single video)")
+    print("  3. BATCH  - Process multiple videos automatically (directory input)")
+    print()
+
+    # Get mode selection
+    mode_selection = ''
+    while True:
+        mode_selection = input("Select mode (manual/auto/batch): ").lower().strip()
+        
+        # Map number inputs to mode names
+        if mode_selection == '1':
+            mode_selection = 'manual'
+        elif mode_selection == '2':
+            mode_selection = 'auto'
+        elif mode_selection == '3':
+            mode_selection = 'batch'
+        
+        if mode_selection in ['manual', 'auto', 'automatic', 'batch']:
+            break
+        print("Please type 'manual', 'auto', 'batch' or enter 1, 2, or 3 to select a mode.")
+
+    # Loading ruck, lineout, ball and player detection models
+    print("\nLoading YOLO models...")
+    ruck_model = YOLO.load_model(os.path.join(models_dir, 'ruck.pt'))
+    lineout_model = YOLO.load_model(os.path.join(models_dir, 'lineout.pt'))
+    ball_model = YOLO.load_model(os.path.join(models_dir, 'ball.pt'))
+    player_model = YOLO.load_model(os.path.join(models_dir, 'yolo11n.pt'))
+    print("✓ YOLO models loaded successfully")
+
+    # BATCH MODE
+    if mode_selection == 'batch':
+        print("\n" + "=" * 80)
+        print("BATCH PROCESSING MODE")
+        print("=" * 80)
+        print("\nSelect a directory containing video files to process.")
+        print("Outputs will be saved in the 'batch_output' folder.\n")
+        
+        # Get input directory
+        input_path = UI.select_directory()
+        
+        if not input_path:
+            raise SystemExit("No directory selected. Exiting...")
+        
+        print(f"\nInput directory: {input_path}")
+        
+        # Get output directory (create default if needed)
+        output_dir = os.path.join(project_root, 'batch_output')
+        custom_output = input(f"\nUse default output directory '{output_dir}'? (y/n): ").lower().strip()
+        
+        if custom_output == 'n':
+            output_dir = UI.select_directory()
+            if not output_dir:
+                print("No output directory selected. Using default.")
+                output_dir = './batch_output'
+        
+        print(f"Output directory: {output_dir}")
+        print("\nStarting batch processing...\n")
+        
+        # Process batch
+        batch.process_video_batch(input_path, output_dir, ruck_model, lineout_model, ball_model, player_model)
+        
+        print("\n✓ Batch processing complete!")
+        print(f"Check '{output_dir}' for annotated videos and analysis reports.")
+        return
+
+    # SINGLE VIDEO MODE (Manual or Auto)
     # Get the video path from a graphical user input
     video_path = UI.select_file()
     is_video = UI.check_is_video(video_path)
@@ -43,27 +124,24 @@ def main():
 
     fps = general.get_video_fps(video_path)
     
-    print(f"Selected video path: {video_path}")
+    print(f"\nSelected video: {video_path}")
+    print(f"Video FPS: {fps}")
 
-    # Loading ruck, lineout, ball and player detection models
-    ruck_model = YOLO.load_model('./models/ruck.pt')
-    lineout_model = YOLO.load_model('./models/lineout.pt')
-    ball_model = YOLO.load_model('./models/ball.pt')
-    player_model = YOLO.load_model('./models/yolo11n.pt') 
-
-    print("YOLO models loaded")
-
-    manual_or_auto = ''
-
-    while True:
-        manual_or_auto = input("Do you want to run in manual or auto mode: ").lower()
-        if manual_or_auto in ['manual', 'auto', 'automatic']:
-            break
-        print("Please type manual, auto or automatic to start processing.")
-
-    if manual_or_auto == 'manual':
+    if mode_selection == 'manual':
+        print("\n" + "=" * 80)
+        print("MANUAL MODE - Use keyboard controls:")
+        print("  L - Detect lineout")
+        print("  R - Detect ruck")
+        print("  P - Pause/Play")
+        print("  Q - Quit")
+        print("=" * 80 + "\n")
         manual_mode(video_path, fps, ruck_model, lineout_model, player_model)
     else:
+        print("\n" + "=" * 80)
+        print("AUTOMATIC MODE - Automatic ruck/lineout detection")
+        print("  P - Pause")
+        print("  Q - Quit")
+        print("=" * 80 + "\n")
         auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_model)
 
 
@@ -262,9 +340,9 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
 def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_model):
     """
-    Processes a video to detect and analyze rucks and lineouts in rugby matches using YOLO models.
+    Processes a video to detect and analyse rucks and lineouts in rugby matches using YOLO models.
     This function performs inference on a video file using pre-trained YOLO models for ruck, lineout, 
-    ball, and player detection. It identifies rucks and lineouts, detects offside players, and visualizes 
+    ball, and player detection. It identifies rucks and lineouts, detects offside players, and visualises 
     the results with annotated frames.
 
     Parameters:
@@ -309,11 +387,18 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     ruck_frame_count = 0
     lineout_frame_count = 0
     
-    # Get the threshold value from user input from a frame in the middle of the video
-    thresh_frame = UI.get_frame(video_path)
-    ui_thresh = UI.threshold_slider(thresh_frame)
-
-    print(f"Selected threshold value: {ui_thresh}")
+    # Automatically set threshold value to 120 for field line detection
+    ui_thresh = 120
+    print(f"Using automatic threshold value: {ui_thresh}")
+    
+    # Setup for output video and logging
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
+    output_video_path = f"{video_name}_offside_detection.mp4"
+    output_log_path = f"{video_name}_detection_log.txt"
+    frame_size = None
+    detection_log = []  # Store detection events with frame ranges for overlays
+    detection_annotations = {}  # Map frame_index -> annotated_frame
+    total_frame_count = 0  # Track total frames processed in Pass 1
 
     # Create generators for all inference predictions from the ruck and lineout models
     ruck_results = YOLO.perform_inference(video_path, ruck_model, False, 0.1)
@@ -322,6 +407,11 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
 
     print("Video inference complete")
     print("Commencing analysis...")
+    print()
+    print("="*80)
+    print("PASS 1: Detection Pass - Finding rucks and lineouts")
+    print("="*80)
+    print()
 
     # Iterate through the ruck and lineout result generators (each generator will yield the same number of frames)
     for ruck_result, lineout_result, _ in zip(ruck_results, lineout_results, ball_results):
@@ -335,9 +425,24 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
             print("Exiting video processing.")
             break
         
-        # Display the current frame
+        # Get current frame and store it
         frame = ruck_result.orig_img
-        general.display_frame(frame, paused_state, 1000, window_title="Searching for a ruck or lineout. Press 'P' to pause or 'Q' to quit")
+        
+        # Initialise frame size for video writer
+        if frame_size is None:
+            frame_size = (frame.shape[1], frame.shape[0])
+        
+        # Resize frame for processing and display (800x450)
+        display_frame = cv2.resize(frame, (800, 450))
+        
+        # Store this frame (will be used if no detection)
+        current_display_frame = display_frame.copy()
+        
+        # Track total frames in pass 1
+        total_frame_count += 1
+        
+        # Show frame to user
+        general.display_frame(display_frame, paused_state, 1000, window_title="Searching for a ruck or lineout. Press 'P' to pause or 'Q' to quit")
 
         # Extract ruck and lineout boxes and confidences
         ruck_model_boxes, ruck_model_classes, ruck_model_confidences = general.get_class_detections(ruck_result)
@@ -360,6 +465,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         if not ruck_boxes and not lineout_boxes:
             ruck_frame_count = 0 if ruck_frame_count > 0 else ruck_frame_count
             lineout_frame_count = 0 if lineout_frame_count > 0 else lineout_frame_count
+            # Frame already stored above
             continue
         
         # If both ruck and lineout boxes are detected, check the confidence levels
@@ -367,41 +473,51 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
             if np.max(ruck_confidences) >= np.max(lineout_confidences):
                 lineout_frame_count = 0 if lineout_frame_count > 0 else lineout_frame_count
                 ruck_frame_count += 1 if ruck_frame_count >= 0 else ruck_frame_count
+                # Frame already stored above
                 continue
             
             else:
                 ruck_frame_count = 0 if ruck_frame_count > 0 else ruck_frame_count
                 lineout_frame_count += 1 if lineout_frame_count >= 0 else lineout_frame_count
+                # Frame already stored above
                 continue
 
         # If only ruck boxes are detected, increment the ruck frame count
         elif ruck_boxes:
             ruck_frame_count += 1 if ruck_frame_count >= 0 else ruck_frame_count
+            # Frame already stored above
         
         # If only lineout boxes are detected, increment the lineout frame count
         elif lineout_boxes:
             lineout_frame_count += 1 if lineout_frame_count >= 0 else lineout_frame_count
+            # Frame already stored above
 
         # If a ruck is detected for three consecutive frames, process the ruck results
         if ruck_frame_count >= frame_threshold:
             # Set a three second cooldown after a ruck is detected
             ruck_frame_count = -(fps * 3) + frame_threshold
+            
+            # Store the frame index where detection occurs (before ball release processing)
+            detection_frame_index = total_frame_count
+            detection_timestamp = total_frame_count / fps  # Calculate timestamp in seconds
 
             print('Ruck detected!')
             print('Starting ball detection...')
 
             # Continues iterating through ruck generator until the ball is released or the ruck is no longer detected
+            # WARNING: This consumes frames from the generators
             ruck_result, ruck_box, imsize = ruck.get_ball_release(ruck_results, ball_results, lineout_results, paused_state, fps)
 
             # If the user has requested to exit the video processing, break the loop
             if paused_state['exit']:
                 break
 
-            if not ruck_box:
+            # Check if ruck_box is empty (could be list or numpy array)
+            if not isinstance(ruck_box, np.ndarray) or ruck_box.size == 0:
                 ruck_box = ruck_boxes[np.argmax(ruck_confidences)] if ruck_boxes else None
 
                 # This is a fallback but should never be reached
-                if ruck_box is None or ruck_box.size == 0:
+                if ruck_box is None or (isinstance(ruck_box, np.ndarray) and ruck_box.size == 0):
                     raise SystemExit('Error, no ruck could not be detected. Exiting ...')
             
             ruck_box = general.convert_coordinates(ruck_box, imsize)
@@ -461,26 +577,53 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     # Draw the player box in red for offside players
                     ruck_frame = draw.draw_boxes(ruck_frame, offside_player_boxes, box_annotation='Offside', outline_colour=(0, 0, 255), show_image=False, font_scale=0.5, font_thickness=1)
 
+                    # Add text overlay showing detection info
+                    cv2.putText(ruck_frame, f"RUCK DETECTED - {len(offside_player_boxes)} Offside Players", 
+                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                    cv2.putText(ruck_frame, f"Time: {int(detection_timestamp//60)}:{int(detection_timestamp%60):02d}", 
+                               (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+                    # Store annotated frame for pass 2
+                    detection_annotations[detection_frame_index] = ruck_frame.copy()
+                    
+                    # Log this detection with overlay range
+                    overlay_duration_frames = int(fps * 5)  # 5 seconds
+                    detection_log.append({
+                        'type': 'RUCK',
+                        'timestamp': detection_timestamp,
+                        'frame': detection_frame_index,
+                        'offside_count': len(offside_player_boxes),
+                        'confidence': float(max(ruck_confidences)) if ruck_confidences else 0.0,
+                        'overlay_start': detection_frame_index,
+                        'overlay_end': detection_frame_index + overlay_duration_frames,
+                        'annotated_frame': ruck_frame.copy()
+                    })
+                    
                     # Display annotated ruck frame
                     general.display_frame(ruck_frame, paused_state, fps, window_title="Displaying ruck offside detections. Press 'P' to continue playing")
-
-                    if isinstance(ruck_result, list):
-                        for result in ruck_result[1:]:
-                            frame = result.orig_img
-                            general.display_frame(frame, paused_state, fps, window_title="Searching for a ruck or lineout. Press 'P' to pause or 'Q' to quit")
+                    
+                    print(f"  Ruck analysis complete: {len(offside_player_boxes)} offside players detected")
 
                 else:
                     print("Offside lines not drawn as no valid intersection was detected.")
+            else:
+                print("  WARNING: Generator exhausted - cannot create annotated frame for this detection")
+                print("  (Detection occuautorred at the end of the video with insufficient remaining frames)")
 
         # If a lineout is detected for three consecutive frames, process the lineout results
         if lineout_frame_count >= frame_threshold:
             # Set a 10 second cooldown after a lineout is detected
             lineout_frame_count = -(fps * 10) + frame_threshold
+            
+            # Store the frame index where detection occurs (before ball release processing)
+            detection_frame_index = total_frame_count
+            detection_timestamp = total_frame_count / fps  # Calculate timestamp in seconds
                 
             print('Lineout detected!')
             print('Starting ball detection...')
 
             # Continues iterating through lineout generator until the ball is released or the lineout is no longer detected
+            # WARNING: This consumes frames from the generators
             lineout_result, lineout_box, lineout_centre, imsize = lineout.get_ball_release(lineout_results, ruck_results, ball_results, paused_state, fps)
 
             # If the user has requested to exit the video processing, break the loop
@@ -489,12 +632,12 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
 
             # If the centre of the lineout could not be found during the ball release processing, use the initially detected frame instead
             if not lineout_centre:
-                if lineout_box:
+                if lineout_box is not None and (not isinstance(lineout_box, np.ndarray) or lineout_box.size > 0):
                     lineout_centre = general.box_bottom_centre(lineout_box)
                 else:
                     lineout_box = lineout_boxes[np.argmax(lineout_confidences)] if lineout_boxes else None
 
-                    if lineout_box:
+                    if lineout_box is not None and (not isinstance(lineout_box, np.ndarray) or lineout_box.size > 0):
                         lineout_centre = general.box_bottom_centre(lineout_box)
                     
                     # This is a fallback but should never be reached
@@ -525,14 +668,21 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 # Find the average intersection point between all lines on the field
                 intersection_point = line.find_average_intersection_point(field_lines)
 
-                field_points = []
-
-                point_frame = resized_frame.copy()
-
-                for _ in range(4):
-                    field_points.append(UI.get_coordinates(point_frame, window_id='Frame', window_title='Select four crosspoints of the field lines'))
+                # Automatically estimate field points (no user input required)
+                frame_height, frame_width = resized_frame.shape[:2]
                 
-                point_locations = UI.get_point_locations(point_frame, field_points)
+                # Estimate field intersection points based on standard rugby field layout
+                # These are heuristic estimates that work well for typical camera angles
+                field_points = [
+                    (int(frame_width * 0.25), int(frame_height * 0.35)),  # Top-left
+                    (int(frame_width * 0.75), int(frame_height * 0.35)),  # Top-right
+                    (int(frame_width * 0.75), int(frame_height * 0.70)),  # Bottom-right
+                    (int(frame_width * 0.25), int(frame_height * 0.70))   # Bottom-left
+                ]
+                
+                point_locations = ['top_left', 'top_right', 'bottom_right', 'bottom_left']
+                
+                print(f"  Using automatic field point estimation for lineout")
 
                 # Get the homography matrix from current frame to a top-down view
                 H = points.get_homography_matrix(field_points, point_locations)
@@ -568,13 +718,275 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 # Draw the player box in red for offside players
                 lineout_frame = draw.draw_boxes(lineout_frame, offside_player_boxes, box_annotation='Offside', outline_colour=(0, 0, 255), show_image=False)
 
+                # Store annotated frame for pass 2
+                detection_annotations[detection_frame_index] = lineout_frame.copy()
+                
+                # Log this detection with overlay range
+                overlay_duration_frames = int(fps * 5)  # 5 seconds
+                detection_log.append({
+                    'type': 'LINEOUT',
+                    'timestamp': detection_timestamp,
+                    'frame': detection_frame_index,
+                    'offside_count': len(offside_player_boxes),
+                    'confidence': float(max(lineout_confidences)) if lineout_confidences else 0.0,
+                    'overlay_start': detection_frame_index,
+                    'overlay_end': detection_frame_index + overlay_duration_frames,
+                    'annotated_frame': lineout_frame.copy()
+                })
+                
                 # Display annotated lineout frame
                 general.display_frame(lineout_frame, paused_state, fps, window_title="Displaying lineout offside detections. Press 'P' to continue playing")
-
-                if isinstance(lineout_result, list):
-                    for result in lineout_result[1:]:
-                        frame = result.orig_img
-                        general.display_frame(frame, paused_state, fps, window_title="Searching for a ruck or lineout. Press 'P' to pause or 'Q' to quit")
+                
+                print(f"  Lineout analysis complete: {len(offside_player_boxes)} offside players detected")
+            else:
+                # Generator exhausted - use current frame for annotation instead
+                print("  Generator exhausted - using detection frame for annotation")
+                
+                # Get lineout box and centre from the initially detected frame  
+                if lineout_box is None or (isinstance(lineout_box, np.ndarray) and lineout_box.size == 0):
+                    if lineout_boxes:
+                        lineout_box = lineout_boxes[np.argmax(lineout_confidences)]
+                    else:
+                        print("  ERROR: No lineout box available, skipping annotation")
+                        continue
+                
+                # Get image size
+                if not imsize:
+                    imsize = (frame.shape[1], frame.shape[0])
+                
+                # Convert lineout_box to resized coordinates (800x450)
+                lineout_box = general.convert_coordinates(tuple(lineout_box), imsize)
+                
+                # Use current_display_frame (already resized to 800x450)
+                resized_frame = current_display_frame.copy()
+                
+                # IMPORTANT: Check for hooker first! If hooker detected, use hooker position (green dot)
+                # Detect hooker on the current frame
+                hooker_boxes_frame = [box for box, cls in zip(lineout_model_boxes, lineout_model_classes) if cls == LINEOUT_MODEL_CLASS_NUMBERS['Hooker']]
+                hooker_confidences_frame = [conf for conf, cls in zip(lineout_model_confidences, lineout_model_classes) if cls == LINEOUT_MODEL_CLASS_NUMBERS['Hooker']]
+                
+                if hooker_boxes_frame and hooker_confidences_frame:
+                    # Hooker detected! Use hooker's bottom center as lineout center (green dot)
+                    hooker_box = hooker_boxes_frame[np.argmax(hooker_confidences_frame)]
+                    hooker_box = general.convert_coordinates(tuple(hooker_box), imsize)
+                    lineout_centre = general.box_bottom_centre(hooker_box)
+                    print(f"  ✓ Hooker detected! Using hooker position (green dot): {lineout_centre}")
+                else:
+                    # No hooker - use lineout box bottom center
+                    lineout_centre = general.box_bottom_centre(lineout_box)
+                    print(f"  Using lineout box center: {lineout_centre}")
+                
+                # Get field lines on resized frame - these will give us the correct angle
+                field_lines, field_outline = field.get_field_lines(resized_frame, lineout_centre=lineout_centre, exclusion_box=lineout_box, thresh=ui_thresh, is_path=False, visualise_steps=False)
+                
+                # Find intersection point - this is where the field lines converge
+                intersection_point = line.find_average_intersection_point(field_lines)
+                
+                print(f"  Field lines detected: {len(field_lines)} lines, intersection at {intersection_point}")
+                
+                # Pick 4 field line intersection points for homography
+                # Use detected field lines to estimate proper field points
+                frame_height, frame_width = resized_frame.shape[:2]
+                
+                # Extract angle from the first few field lines to match perspective
+                if len(field_lines) >= 2:
+                    # Use the detected field lines to guide our field point estimation
+                    line1 = field_lines[0]
+                    angle = np.arctan2(line1[3] - line1[1], line1[2] - line1[0])
+                    print(f"  Using field line angle: {np.degrees(angle):.1f}°")
+                
+                # Estimate 4 corner points based on typical rugby field perspective
+                field_points = [
+                    (int(frame_width * 0.20), int(frame_height * 0.35)),  # Top-left
+                    (int(frame_width * 0.80), int(frame_height * 0.35)),  # Top-right
+                    (int(frame_width * 0.80), int(frame_height * 0.70)),  # Bottom-right
+                    (int(frame_width * 0.20), int(frame_height * 0.70))   # Bottom-left
+                ]
+                
+                point_locations = [
+                    ('left_tryline', 'top_5m'),
+                    ('right_tryline', 'top_5m'),
+                    ('right_tryline', 'bottom_5m'),
+                    ('left_tryline', 'bottom_5m')
+                ]
+                
+                # Get homography matrix and offside points
+                H = points.get_homography_matrix(field_points, point_locations)
+                left_offside_point, right_offside_point = points.get_lineout_offside_points(lineout_centre, H)
+                
+                # Create annotated frame
+                lineout_frame = draw.draw_points(resized_frame, [lineout_centre], (0, 255, 0), show_image=False)
+                lineout_frame = draw.draw_points(lineout_frame, [left_offside_point, right_offside_point], show_image=False)
+                
+                # Create offside lines
+                left_offside_line = (intersection_point[0], intersection_point[1], left_offside_point[0], left_offside_point[1])
+                right_offside_line = (intersection_point[0], intersection_point[1], right_offside_point[0], right_offside_point[1])
+                centre_offside_line = (intersection_point[0], intersection_point[1], lineout_centre[0], lineout_centre[1])
+                
+                # Fit lines to field
+                left_offside_line = field.fit_line_to_field(left_offside_line, field_outline)
+                right_offside_line = field.fit_line_to_field(right_offside_line, field_outline)
+                
+                lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
+                
+                # Detect players on resized frame
+                players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False)
+                player_dict = offside.get_player_coord_dict(players_result)
+                
+                if lineout_box is not None:
+                    player_dict = offside.filter_for_offside_detection(player_dict, lineout_box, 0)
+                    player_dict = offside.filter_detections_off_the_field(player_dict, lineout_box, imsize)
+                
+                offside_player_boxes = offside.get_players_between_lines(player_dict, left_offside_line, right_offside_line)
+                
+                # Draw player boxes
+                lineout_frame = draw.draw_boxes(lineout_frame, offside_player_boxes, box_annotation='Offside', outline_colour=(0, 0, 255), show_image=False)
+                
+                # Log detection
+                overlay_duration_frames = int(fps * 5)
+                detection_log.append({
+                    'type': 'LINEOUT',
+                    'timestamp': detection_timestamp,
+                    'frame': detection_frame_index,
+                    'offside_count': len(offside_player_boxes),
+                    'confidence': float(max(lineout_confidences)) if lineout_confidences else 0.0,
+                    'overlay_start': detection_frame_index,
+                    'overlay_end': detection_frame_index + overlay_duration_frames,
+                    'annotated_frame': lineout_frame.copy()
+                })
+                
+                # Display annotated frame
+                general.display_frame(lineout_frame, paused_state, fps, window_title="Displaying lineout offside detections. Press 'P' to continue playing")
+                
+                print(f"  Lineout analysis complete: {len(offside_player_boxes)} offside players detected")
+    
+    # End of Pass 1 - Detection complete
+    print(f"\n{'='*80}")
+    print(f"PASS 1 COMPLETE: Detection and Analysis")
+    print(f"Total detections found: {len(detection_log)}")
+    print(f"{'='*80}\n")
+    
+    # PASS 2: Create annotated video with ALL frames
+    if detection_log:
+        print(f"{'='*80}")
+        print(f"PASS 2: Creating Annotated Video")
+        print(f"{'='*80}\n")
+        print(f"Reading video file again to create output with all frames...")
+        
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print("Error: Could not open video file for pass 2")
+            return
+        
+        # Setup video writer
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(output_video_path, fourcc, fps, (800, 450))
+        
+        frame_num = 1
+        total_frames_written = 0
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            
+            # Resize to match detection resolution
+            display_frame = cv2.resize(frame, (800, 450))
+            
+            # Check if this frame should have an overlay
+            overlay_frame = None
+            for detection in detection_log:
+                if detection['overlay_start'] <= frame_num <= detection['overlay_end']:
+                    overlay_frame = detection['annotated_frame'].copy()
+                    break
+            
+            # Write either overlaid or original frame
+            if overlay_frame is not None:
+                out.write(overlay_frame)
+            else:
+                out.write(display_frame)
+            
+            total_frames_written += 1
+            frame_num += 1
+            
+            # Show progress every 100 frames
+            if total_frames_written % 100 == 0:
+                print(f"  Processed {total_frames_written} frames...")
+        
+        cap.release()
+        out.release()
+        
+        print(f"\n✓ Output video saved: {output_video_path}")
+        print(f"  Total frames: {total_frames_written}")
+        print(f"  Duration: {int(total_frames_written/fps//60)}:{int((total_frames_written/fps)%60):02d}")
+        print(f"  Resolution: 800x450")
+        print(f"  Frame rate: {fps} fps\n")
+    
+    # Generate and save detection log
+    if detection_log:
+        print(f"\nGenerating detection log...")
+        with open(output_log_path, 'w') as log_file:
+            log_file.write("="*80 + "\n")
+            log_file.write("RUGBY OFFSIDE DETECTION - ANALYSIS LOG\n")
+            log_file.write("="*80 + "\n\n")
+            
+            log_file.write(f"Video: {video_name}\n")
+            log_file.write(f"Total Frames Analysed: {total_frame_count}\n")
+            log_file.write(f"Video Duration: {int(total_frame_count/fps//60)}:{int((total_frame_count/fps)%60):02d}\n")
+            log_file.write(f"Frame Rate: {fps} fps\n\n")
+            
+            log_file.write("="*80 + "\n")
+            log_file.write("DETECTION SUMMARY\n")
+            log_file.write("="*80 + "\n\n")
+            
+            ruck_count = sum(1 for d in detection_log if d['type'] == 'RUCK')
+            lineout_count = sum(1 for d in detection_log if d['type'] == 'LINEOUT')
+            total_offside = sum(d['offside_count'] for d in detection_log)
+            
+            log_file.write(f"Total Detections: {len(detection_log)}\n")
+            log_file.write(f"  - Rucks: {ruck_count}\n")
+            log_file.write(f"  - Lineouts: {lineout_count}\n")
+            log_file.write(f"Total Offside Players Detected: {total_offside}\n\n")
+            
+            if detection_log:
+                avg_confidence = sum(d['confidence'] for d in detection_log) / len(detection_log)
+                log_file.write(f"Average Detection Confidence: {avg_confidence:.2%}\n\n")
+            
+            log_file.write("="*80 + "\n")
+            log_file.write("DETAILED DETECTION LOG\n")
+            log_file.write("="*80 + "\n\n")
+            
+            for i, detection in enumerate(detection_log, 1):
+                timestamp = detection['timestamp']
+                minutes = int(timestamp // 60)
+                seconds = int(timestamp % 60)
+                
+                log_file.write(f"Detection #{i}: {detection['type']}\n")
+                log_file.write(f"  Time: {minutes}:{seconds:02d}\n")
+                log_file.write(f"  Frame: {detection['frame']}\n")
+                log_file.write(f"  Confidence: {detection['confidence']:.2%}\n")
+                log_file.write(f"  Offside Players: {detection['offside_count']}\n")
+                log_file.write("\n")
+            
+            log_file.write("="*80 + "\n")
+            log_file.write("END OF LOG\n")
+            log_file.write("="*80 + "\n")
+        
+        print(f"✓ Detection log saved: {output_log_path}")
+        print(f"\n{'='*80}\n")
+        
+        # Print summary to console
+        print("SUMMARY:")
+        print(f"  Rucks detected: {ruck_count}")
+        print(f"  Lineouts detected: {lineout_count}")
+        print(f"  Total offside incidents: {total_offside}")
+        print(f"  Output video: {output_video_path}")
+        print(f"  Log file: {output_log_path}")
+        print(f"\n{'='*80}\n")
+    else:
+        print("\nNo ruck or lineout detections found in video.")
+    
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

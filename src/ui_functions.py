@@ -25,7 +25,7 @@ Dependencies:
 import os, sys, cv2
 import numpy as np
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, askdirectory
 from constants import POINT_SELECTION_STRING
 
 def select_file():
@@ -52,6 +52,27 @@ def select_file():
     else:
         print(f'Error: No file selected')
         sys.exit(1)
+
+
+def select_directory():
+    """
+    Opens a directory dialog for the user to select a folder and returns the selected folder's path.
+    
+    Returns:
+        str: The full path of the selected directory, or None if no directory is selected.
+    """
+    root = Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)  # Ensure the dialog appears on top of other windows
+    directory = askdirectory(
+        title='Select a Directory'
+    )
+    root.destroy()
+    
+    if directory:
+        return directory
+    else:
+        return None
 
 
 def check_is_video(filename):

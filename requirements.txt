@@ -1,0 +1,28 @@
+# Queensland Reds Offside Detection System - Requirements
+# Python 3.8+
+
+# Core Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0  # YOLO models
+
+# Computer Vision
+opencv-python>=4.8.0
+opencv-contrib-python>=4.8.0
+numpy>=1.24.0
+
+# GUI and File Handling
+tkinter  # Usually included with Python
+Pillow>=10.0.0
+
+# Optional but Recommended
+# CUDA support for GPU acceleration (install separately based on your system)
+# https://pytorch.org/get-started/locally/
+
+# For development and testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Data analysis (optional, for result analysis)
+pandas>=2.0.0
+matplotlib>=3.7.0
