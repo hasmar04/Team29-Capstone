@@ -247,6 +247,8 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
             player_dict = offside.get_player_coord_dict(players_result)
 
             offside_player_boxes = offside.get_players_between_lines(player_dict, left_ruck_line, right_ruck_line)
+            print(player_dict)
+            print(offside_player_boxes)
 
             # Draw the player box in red for offside players
             ruck_frame = draw.draw_boxes(ruck_frame, offside_player_boxes, box_annotation='Offside', outline_colour=(0, 0, 255), show_image=False)

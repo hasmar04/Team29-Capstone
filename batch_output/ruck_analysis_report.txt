@@ -1,0 +1,52 @@
+================================================================================
+RUGBY OFFSIDE DETECTION ANALYSIS REPORT
+================================================================================
+
+Video File: ruck.gif
+Processing Date: 2026-03-13 11:08:39
+Total Frames Analysed: 80
+Total Events Detected: 2
+
+--------------------------------------------------------------------------------
+
+DETECTION EVENTS:
+================================================================================
+
+Event #1
+  Type: RUCK
+  Frame Number: 1
+  Timestamp: 0.07s
+  Detection Confidence: 48.74%
+  Ruck Box Confidence: 48.74%
+  Offside Players Detected: 5
+  Offside Player Positions:
+    Player 1: Position (339, 143), Confidence: 85.00%
+    Player 2: Position (200, 83), Confidence: 85.00%
+    Player 3: Position (454, 214), Confidence: 85.00%
+    Player 4: Position (150, 14), Confidence: 85.00%
+    Player 5: Position (416, 139), Confidence: 85.00%
+
+--------------------------------------------------------------------------------
+
+Event #2
+  Type: LINEOUT
+  Frame Number: 15
+  Timestamp: 1.00s
+  Detection Confidence: 19.63%
+  Lineout Box Confidence: 19.63%
+  Offside Players Detected: 0
+
+--------------------------------------------------------------------------------
+
+
+SUMMARY STATISTICS:
+================================================================================
+Total Ruck Events: 1
+Total Lineout Events: 1
+Total Offside Players Across All Events: 5
+Average Ruck Detection Confidence: 48.74%
+Average Lineout Detection Confidence: 19.63%
+
+================================================================================
+End of Report
+================================================================================
