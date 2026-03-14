@@ -20,7 +20,7 @@ def main():
     This function allows the user to select a video file or directory for processing, validates the file type,
     loads the necessary YOLO models for detection, and provides options to run the program
     in manual, automatic, or batch mode.
-    Steps:
+    Steps  :
     1. Prompts the user to select a processing mode (manual, auto, or batch).
     2. For single video modes: prompts the user to select a video file through a graphical user interface.
     3. For batch mode: prompts the user to select a directory containing videos.
@@ -46,7 +46,7 @@ def main():
     print("=" * 80)
     print("QUEENSLAND REDS - RUGBY OFFSIDE DETECTION SYSTEM")
     print("=" * 80)
-    print("\nProcessing Modes:")
+    print("\nProcessing Modes:  ")
     print("  1. MANUAL - Manually select when to detect rucks/lineouts (single video)")
     print("  2. AUTO   - Automatic detection of rucks/lineouts (single video)")
     print("  3. BATCH  - Process multiple videos automatically (directory input)")
