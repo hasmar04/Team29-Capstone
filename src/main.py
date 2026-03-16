@@ -12,6 +12,7 @@ import general_functions as general
 import offside_functions as offside
 import point_functions as points
 import batch_processor as batch
+import player_detection as player
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 def main():
@@ -242,9 +243,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             ruck_frame = draw.draw_lines(frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
-            players_result = YOLO.perform_inference(frame, player_model, show_output=False)
-
-            player_dict = offside.get_player_coord_dict(players_result)
+            player_dict = build_offside_player_dict(frame, player_model)
 
             offside_player_boxes = offside.get_players_between_lines(player_dict, left_ruck_line, right_ruck_line)
             print(player_dict)
@@ -320,9 +319,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             lineout_frame = draw.draw_lines(lineout_frame, [left_lineout_line, right_lineout_line], (255, 0, 0), show_image=False)
 
-            players_result = YOLO.perform_inference(frame, player_model, show_output=False)
-
-            player_dict = offside.get_player_coord_dict(players_result)
+            player_dict = build_offside_player_dict(frame, player_model)
 
             if lineout_box is not None: 
                 player_dict = offside.filter_for_offside_detection(player_dict, lineout_box)
@@ -567,9 +564,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     ruck_frame = draw.draw_lines(ruck_frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
                     # Run player detection on the current frame
-                    players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False, conf=0.1)
-
-                    player_dict = offside.get_player_coord_dict(players_result)
+                    player_dict = build_offside_player_dict(resized_frame, player_model)
 
                     if ruck_box is not None:
                         player_dict = offside.filter_for_offside_detection(player_dict, ruck_box, overlap_threshold=0.4, width_expansion_factor=0, height_expansion_factor=0)
@@ -707,9 +702,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
 
                 # Run player detection on the current frame
-                players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False)
-
-                player_dict = offside.get_player_coord_dict(players_result)
+                player_dict = build_offside_player_dict(resized_frame, player_model)
 
                 if lineout_box is not None: 
                     player_dict = offside.filter_for_offside_detection(player_dict, lineout_box, 0)
@@ -832,8 +825,8 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
                 
                 # Detect players on resized frame
-                players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False)
-                player_dict = offside.get_player_coord_dict(players_result)
+                player_dict = build_offside_player_dict(resized_frame, player_model)
+                print(player_dict)
                 
                 if lineout_box is not None:
                     player_dict = offside.filter_for_offside_detection(player_dict, lineout_box, 0)
@@ -989,6 +982,18 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         print("\nNo ruck or lineout detections found in video.")
     
     cv2.destroyAllWindows()
+
+
+def build_offside_player_dict(frame, player_model):
+    """
+    Run the player detection pipeline and convert the result into the
+    coordinate dictionary format used by offside_functions.
+    """
+    player_result = player.detect_players(frame, player_model)
+    players = player.build_player_data(frame, player_result)
+    players = player.assign_teams_by_colour(players)
+    player_dict = player.build_player_coord_dict(players)
+    return player_dict
 
 
 if __name__ == "__main__":

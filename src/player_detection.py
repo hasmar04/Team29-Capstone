@@ -16,6 +16,8 @@ def detect_players(frame, player_model):
 
     if not results:
         return None
+    
+    print("Player detection resultsdasds:", results)
 
     return results[0]
 
@@ -174,3 +176,22 @@ def assign_teams_by_colour(players):
             player["team"] = None
 
     return players
+
+def build_player_coord_dict(players):
+    """
+    Convert player list into a coordinate dictionary for offside detection.
+
+    Args:
+        players (list): A list of player dictionaries.
+
+    Returns:
+        dict: Mapping of player bottom-centre coordinates to their bounding boxes.
+    """
+    player_dict = {}
+
+    for player in players:
+        player_coord = player["bottom_centre"]
+        player_box = player["box"]
+        player_dict[player_coord] = player_box
+
+    return player_dict
