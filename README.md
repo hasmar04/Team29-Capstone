@@ -7,7 +7,9 @@ An automated computer vision system for detecting and analysing offside events i
 ### Processing Modes
 
 #### 1. Batch Processing
+
 Process multiple videos automatically with comprehensive reporting:
+
 - Mass input of video footage from directories
 - Fully automated detection without user interaction
 - Confidence level tracking for all detections
@@ -17,7 +19,9 @@ Process multiple videos automatically with comprehensive reporting:
 **Use case**: Analysing multiple match recordings overnight
 
 #### 2. Auto Mode
+
 Single video processing with automatic detection:
+
 - Real-time ruck and lineout detection
 - Automatic offside line calculation
 - Interactive threshold selection
@@ -25,16 +29,18 @@ Single video processing with automatic detection:
 **Use case**: Quick analysis of a single match
 
 #### 3. Manual Mode
+
 Frame-by-frame control for detailed analysis:
+
 - Manual trigger for ruck/lineout detection
 - Step-by-step offside analysis
 - Full user control over detection timing
 
 **Use case**: Detailed review of specific match moments
 
-# System Architecture - Batch Processing
+## System Architecture - Batch Processing
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                     QUEENSLAND REDS OFFSIDE DETECTION SYSTEM                │
 │                              (Batch Processing Mode)                        │
@@ -270,7 +276,7 @@ Frame-by-frame control for detailed analysis:
 
 ## Processing Performance
 
-```
+```text
 Video Processing Timeline (Example):
 ────────────────────────────────────────────────────────────────────────
 
@@ -291,7 +297,7 @@ CPU vs GPU:
 
 ## Data Flow Summary
 
-```
+```text
 Input Video -> YOLO Inference -> Detection Logic -> Field Analysis -> 
 Player Tracking -> Offside Calculation -> Frame Annotation -> 
 Video Compilation -> Report Generation -> Output Files
@@ -302,12 +308,14 @@ Video Compilation -> Report Generation -> Output Files
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/hasmar04/Team29-Capstone.git
 cd Team29-Capstone
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -322,6 +330,7 @@ python main.py
 ```
 
 When prompted:
+
 1. Select mode: `batch`
 2. Choose your videos directory
 3. Select output directory (or use default)
@@ -355,13 +364,15 @@ batch.process_video_batch(
 ## Output Examples
 
 ### Annotated Videos
+
 - Red lines indicate ruck offside boundaries
 - Blue lines indicate lineout offside zones
 - Red boxes highlight players in offside positions
 - "Offside" labels on detected players
 
 ### Analysis Reports
-```
+
+```text
 ==================================================================================
 RUGBY OFFSIDE DETECTION ANALYSIS REPORT
 ==================================================================================
@@ -379,7 +390,7 @@ Event #1
 
 ## Project Structure
 
-```
+```text
 Team29-Capstone/
 ├── src/
 │   ├── main.py                    # Entry point with mode selection
@@ -424,6 +435,7 @@ Training notebooks available in `colab_notebooks/`
 ## Key Technical Details
 
 ### Detection Pipeline
+
 1. YOLO inference on video frames
 2. Consecutive frame detection for stability
 3. Ball release detection
@@ -433,13 +445,16 @@ Training notebooks available in `colab_notebooks/`
 7. Offside player identification
 
 ### Automatic Features
+
 - **Adaptive thresholding**: Automatically adjusts based on video brightness
 - **Consecutive frame validation**: Prevents false positives
 - **Cooldown periods**: Avoids duplicate detections (3s for rucks, 10s for lineouts)
 - **Field point estimation**: Heuristic-based field intersection detection
 
 ### Confidence Tracking
+
 Every detection includes:
+
 - Detection confidence (YOLO model score)
 - Player detection confidence
 - Offside line calculation success rate
@@ -450,7 +465,7 @@ Every detection includes:
 - **Processing speed**: 2-5x real-time (depending on hardware)
 - **Detection accuracy**: ~85-90% for clear footage
 - **GPU acceleration**: Supported via PyTorch CUDA
-- **Recommended specs**: 
+- **Recommended specs**:
   - CPU: Multi-core processor (4+ cores)
   - RAM: 8GB minimum
   - GPU: NVIDIA GPU with CUDA support (optional but recommended)
@@ -458,12 +473,15 @@ Every detection includes:
 ## Development
 
 ### Running Tests
+
 ```bash
 python -m pytest src/unit_testing/
 ```
 
 ### Training New Models
+
 See notebooks in `colab_notebooks/`:
+
 - `ball_dataset.ipynb`
 - `lineout_dataset.ipynb`
 - `ruck_dataset.ipynb`
@@ -472,6 +490,7 @@ See notebooks in `colab_notebooks/`:
 ## Contributors
 
 **Team 29** - QUT Capstone Project 2025
+
 - Project Partner: Queensland Reds
 - University: Queensland University of Technology
 
@@ -482,6 +501,7 @@ This project is developed as part of a university capstone project for the Queen
 ## Support
 
 For issues or questions:
+
 1. Check [BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md)
 2. Review `Handover/Docs/Troubleshooting Guide.pdf`
 3. Contact the development team
