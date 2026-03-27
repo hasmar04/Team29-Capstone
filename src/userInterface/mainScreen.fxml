@@ -20,31 +20,34 @@
       </Text>
       <ProgressBar layoutY="278.0" prefHeight="18.0" prefWidth="600.0" progress="0.0" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#0b7f75" height="105.0" layoutY="295.0" stroke="#0b7f75" strokeType="INSIDE" width="600.0" />
-      <Text fill="WHITE" layoutX="14.0" layoutY="315.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Stats:">
+      <Text fill="WHITE" layoutX="14.0" layoutY="312.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Stats:">
          <font>
             <Font name="Futura Md BT Bold" size="12.0" />
          </font>
       </Text>
-      <Text fill="WHITE" layoutX="14.0" layoutY="332.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Name: ">
+      <Text fill="WHITE" layoutX="14.0" layoutY="329.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Name: ">
          <font>
             <Font name="Futura Bk BT Book" size="12.0" />
          </font>
       </Text>
-      <Text fill="WHITE" layoutX="14.0" layoutY="349.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Total Detections:">
+      <Text fill="WHITE" layoutX="14.0" layoutY="346.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Total Detections:">
          <font>
             <Font name="Futura Bk BT Book" size="12.0" />
          </font>
       </Text>
-      <Text fill="WHITE" layoutX="14.0" layoutY="366.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Duration">
+      <Text fill="WHITE" layoutX="14.0" layoutY="363.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Duration">
          <font>
             <Font name="Futura Bk BT Book" size="12.0" />
          </font>
       </Text>
        <!-- Full Stats Button-->
-      <Button layoutX="11.0" layoutY="373.0" mnemonicParsing="false" text="View Full Stats" />
-      <Line endX="1.333343505859375" endY="78.33334350585938" layoutX="194.0" layoutY="315.0" startX="1.333343505859375" stroke="WHITE" strokeWidth="0.5" />
+      <Button layoutX="11.0" layoutY="372.0" mnemonicParsing="false" style="-fx-background-color: #7A000A;" text="View Full Stats" textFill="WHITE">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font></Button>
+      <Line endX="1.333343505859375" endY="78.33334350585938" layoutX="194.0" layoutY="306.0" startX="1.333343505859375" stroke="WHITE" strokeWidth="0.5" />
        <!-- Backwards Button-->
-      <Button layoutX="215.0" layoutY="326.0" mnemonicParsing="false" opacity="0.0" prefHeight="49.0" prefWidth="34.0" textFill="#ffffff00" />
+      <Button layoutX="215.0" layoutY="326.0" mnemonicParsing="false" opacity="0.0" prefHeight="49.0" prefWidth="34.0" text="Backward Button" textFill="#ffffff00" />
       <ImageView fitHeight="43.0" fitWidth="61.0" layoutX="208.0" layoutY="328.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@Images/backward-skip.jpg" />
@@ -60,7 +63,7 @@
             <Image url="@Images/forward-skip.jpg" />
          </image>
       </ImageView>
-      <Line endX="1.333343505859375" endY="78.33334350585938" layoutX="427.0" layoutY="312.0" startX="1.333343505859375" stroke="WHITE" strokeWidth="0.5" />
+      <Line endX="1.333343505859375" endY="78.33334350585938" layoutX="423.0" layoutY="306.0" startX="1.333343505859375" stroke="WHITE" strokeWidth="0.5" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#35948c" height="105.0" layoutX="434.0" layoutY="295.0" stroke="#35948c" strokeType="INSIDE" width="166.0" />
       <Text fill="WHITE" layoutX="459.0" layoutY="306.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Legend">
          <font>
@@ -91,5 +94,9 @@
             <Font name="Futura Md BT Bold" size="12.0" />
          </font>
       </Text>
+      <Button layoutX="286.0" layoutY="331.0" mnemonicParsing="false" opacity="0.0" prefHeight="43.0" prefWidth="34.0" text="Pause Button" textFill="#ffffff00" />
+      
+      
+      <Button layoutX="353.0" layoutY="326.0" mnemonicParsing="false" opacity="0.0" prefHeight="43.0" prefWidth="34.0" text="Forward Button" textFill="#ffffff00" />
    </children>
 </Pane>
