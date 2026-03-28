@@ -12,7 +12,6 @@ opencv-contrib-python>=4.8.0
 numpy>=1.24.0
 
 # GUI and File Handling
-# tkinter is included with Python standard library - no installation needed
 customtkinter>=5.2.0
 Pillow>=10.0.0
 
