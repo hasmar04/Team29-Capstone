@@ -15,7 +15,8 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="userInterface.controllers.statsController">
+
    <children>
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#7a000a" height="25.0" stroke="BLACK" strokeType="INSIDE" width="600.0" />
       <Text fill="WHITE" layoutX="221.0" layoutY="16.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Name: Statistics">
@@ -103,7 +104,6 @@
             </AnchorPane>
          </content>
       </ScrollPane>
-      <PieChart layoutX="354.0" layoutY="33.0" prefHeight="139.0" prefWidth="182.0" style="-fx-background-color: #000000;" title="Detection Types" />
       <LineChart layoutX="354.0" layoutY="207.0" prefHeight="106.0" prefWidth="185.0" style="-fx-background-color: #000000;">
         <xAxis>
           <CategoryAxis side="BOTTOM" />
@@ -137,5 +137,6 @@
             <Font name="Futura Md BT Medium" size="13.0" />
          </font>
       </Text>
+      <PieChart fx:id="pieChart" layoutX="314.0" layoutY="22.0" prefHeight="271.0" prefWidth="272.0" title="Detection" />
    </children>
 </Pane>
