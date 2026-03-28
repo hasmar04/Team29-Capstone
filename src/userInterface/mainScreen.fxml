@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Rectangle arcHeight="5.0" arcWidth="5.0" height="29.0" opacity="0.48" stroke="BLACK" strokeType="INSIDE" width="600.0" />
+      <Text fill="WHITE" layoutX="119.0" layoutY="18.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Queensland Reds - Rugby Offside Detection System">
+         <font>
+            <Font name="Futura Md BT Bold" size="14.0" />
+         </font>
+      </Text>
+      <ProgressBar layoutY="278.0" prefHeight="18.0" prefWidth="600.0" progress="0.0" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#0b7f75" height="105.0" layoutY="295.0" stroke="#0b7f75" strokeType="INSIDE" width="600.0" />
+      <Text fill="WHITE" layoutX="14.0" layoutY="312.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Stats:">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" layoutX="14.0" layoutY="329.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Name: ">
+         <font>
+            <Font name="Futura Bk BT Book" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" layoutX="14.0" layoutY="346.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Total Detections:">
+         <font>
+            <Font name="Futura Bk BT Book" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" layoutX="14.0" layoutY="363.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Video Duration">
+         <font>
+            <Font name="Futura Bk BT Book" size="12.0" />
+         </font>
+      </Text>
+       <!-- Full Stats Button-->
+      <Button layoutX="11.0" layoutY="372.0" mnemonicParsing="false" style="-fx-background-color: #7A000A;" text="View Full Stats" textFill="WHITE">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font></Button>
+      <Line endX="1.333343505859375" endY="78.33334350585938" layoutX="194.0" layoutY="306.0" startX="1.333343505859375" stroke="WHITE" strokeWidth="0.5" />
+       <!-- Backwards Button-->
+      <Button layoutX="215.0" layoutY="326.0" mnemonicParsing="false" opacity="0.0" prefHeight="49.0" prefWidth="34.0" text="Backward Button" textFill="#ffffff00" />
+      <ImageView fitHeight="43.0" fitWidth="61.0" layoutX="208.0" layoutY="328.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Images/backward-skip.jpg" />
+         </image>
+      </ImageView>
+      <ImageView fitHeight="49.0" fitWidth="63.0" layoutX="276.0" layoutY="325.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Images/pause.jpg" />
+         </image>
+      </ImageView>
+      <ImageView fitHeight="49.0" fitWidth="47.0" layoutX="346.0" layoutY="327.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Images/forward-skip.jpg" />
+         </image>
+      </ImageView>
+      <Line endX="1.333343505859375" endY="78.33334350585938" layoutX="423.0" layoutY="306.0" startX="1.333343505859375" stroke="WHITE" strokeWidth="0.5" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#35948c" height="105.0" layoutX="434.0" layoutY="295.0" stroke="#35948c" strokeType="INSIDE" width="166.0" />
+      <Text fill="WHITE" layoutX="459.0" layoutY="306.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Legend">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font>
+      </Text>
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#163e64" height="17.0" layoutX="460.0" layoutY="313.0" stroke="BLACK" strokeType="INSIDE" width="17.0" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#c00000" height="17.0" layoutX="460.0" layoutY="335.0" stroke="BLACK" strokeType="INSIDE" width="17.0" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ffc000" height="17.0" layoutX="460.0" layoutY="358.0" stroke="BLACK" strokeType="INSIDE" width="17.0" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#47d45a" height="17.0" layoutX="460.0" layoutY="379.0" stroke="BLACK" strokeType="INSIDE" width="17.0" />
+      <Text fill="#163e64" layoutX="481.0" layoutY="325.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Lineout">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="#c00000" layoutX="481.0" layoutY="348.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Offside">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="#ffc000" layoutX="482.0" layoutY="371.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Rucks">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="#47d45a" layoutX="485.0" layoutY="390.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hooker">
+         <font>
+            <Font name="Futura Md BT Bold" size="12.0" />
+         </font>
+      </Text>
+      <Button layoutX="286.0" layoutY="331.0" mnemonicParsing="false" opacity="0.0" prefHeight="43.0" prefWidth="34.0" text="Pause Button" textFill="#ffffff00" />
+      
+      
+      <Button layoutX="353.0" layoutY="326.0" mnemonicParsing="false" opacity="0.0" prefHeight="43.0" prefWidth="34.0" text="Forward Button" textFill="#ffffff00" />
+   </children>
+</Pane>
