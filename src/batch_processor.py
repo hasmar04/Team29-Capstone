@@ -35,6 +35,7 @@ import line_functions as line
 import general_functions as general
 import offside_functions as offside
 import point_functions as points
+import player_detection as player
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 
@@ -334,8 +335,10 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
             ruck_frame = draw.draw_lines(ruck_frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
             
             # Detect players
-            players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False, conf=0.1)
-            player_dict = offside.get_player_coord_dict(players_result)
+            player_result = player.detect_players(resized_frame, player_model)
+            players = player.build_player_data(resized_frame, player_result)
+            players = player.assign_teams_by_colour(players)
+            player_dict = player.build_player_coord_dict(players)
             
             if ruck_box_converted is not None:
                 player_dict = offside.filter_for_offside_detection(player_dict, ruck_box_converted, overlap_threshold=0.4, 
@@ -443,8 +446,10 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
                 
                 # Detect players
-                players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False)
-                player_dict = offside.get_player_coord_dict(players_result)
+                player_result = player.detect_players(resized_frame, player_model)
+                players = player.build_player_data(resized_frame, player_result)
+                players = player.assign_teams_by_colour(players)
+                player_dict = player.build_player_coord_dict(players)
                 
                 if lineout_box_converted is not None:
                     player_dict = offside.filter_for_offside_detection(player_dict, lineout_box_converted, 0)

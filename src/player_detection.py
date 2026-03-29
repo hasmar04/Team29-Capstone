@@ -17,7 +17,7 @@ def detect_players(frame, player_model):
     if not results:
         return None
     
-    print("Player detection resultsdasds:", results)
+
 
     return results[0]
 
