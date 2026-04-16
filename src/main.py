@@ -1,3 +1,5 @@
+from unittest import result
+
 import cv2
 import numpy as np
 import os
@@ -12,6 +14,7 @@ import general_functions as general
 import offside_functions as offside
 import point_functions as points
 import batch_processor as batch
+import player_detection as player
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 def main():
@@ -74,7 +77,7 @@ def main():
     ruck_model = YOLO.load_model(os.path.join(models_dir, 'ruck.pt'))
     lineout_model = YOLO.load_model(os.path.join(models_dir, 'lineout.pt'))
     ball_model = YOLO.load_model(os.path.join(models_dir, 'ball.pt'))
-    player_model = YOLO.load_model(os.path.join(models_dir, 'yolo11n.pt'))
+    player_model = YOLO.load_model(os.path.join(models_dir, 'player-id.pt'))
     print("✓ YOLO models loaded successfully")
 
     # BATCH MODE
@@ -242,9 +245,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             ruck_frame = draw.draw_lines(frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
-            players_result = YOLO.perform_inference(frame, player_model, show_output=False)
-
-            player_dict = offside.get_player_coord_dict(players_result)
+            player_dict = build_offside_player_dict(frame, player_model)
 
             offside_player_boxes = offside.get_players_between_lines(player_dict, left_ruck_line, right_ruck_line)
 
@@ -318,9 +319,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             lineout_frame = draw.draw_lines(lineout_frame, [left_lineout_line, right_lineout_line], (255, 0, 0), show_image=False)
 
-            players_result = YOLO.perform_inference(frame, player_model, show_output=False)
-
-            player_dict = offside.get_player_coord_dict(players_result)
+            player_dict = build_offside_player_dict(frame, player_model)
 
             if lineout_box is not None: 
                 player_dict = offside.filter_for_offside_detection(player_dict, lineout_box)
@@ -382,6 +381,14 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     paused_state = {'paused': False, 'exit': False}
 
     frame_threshold = fps // 10
+
+    #Initialize team counts
+    final_counts = {
+    "team_0": 0,
+    "team_1": 0,
+    "unknown_team": 0,
+    "refs": 0
+    }
 
     # Initialise ruck and lineout frame counts
     ruck_frame_count = 0
@@ -519,7 +526,8 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 # This is a fallback but should never be reached
                 if ruck_box is None or (isinstance(ruck_box, np.ndarray) and ruck_box.size == 0):
                     raise SystemExit('Error, no ruck could not be detected. Exiting ...')
-            
+
+            ruck_box = ruck_box.tolist()
             ruck_box = general.convert_coordinates(ruck_box, imsize)
             
             print('Ruck and ball detection finished')
@@ -565,9 +573,22 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     ruck_frame = draw.draw_lines(ruck_frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
                     # Run player detection on the current frame
-                    players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False, conf=0.1)
+                    player_result = player.detect_players(resized_frame, player_model)
+                    players = player.build_player_data(resized_frame, player_result)
+                    players = player.assign_teams_by_colour(players)
+                    counts = player.count_teams_and_refs(players)
 
-                    player_dict = offside.get_player_coord_dict(players_result)
+                    for key in final_counts:
+                        final_counts[key] += counts[key]
+
+                    print(
+                        f"Detected counts -> "
+                        f"Team 0: {counts['team_0']}, "
+                        f"Team 1: {counts['team_1']}, "
+                        f"Unknown: {counts['unknown_team']}, "
+                        f"Refs: {counts['refs']}"
+                    )
+                    player_dict = player.build_player_coord_dict(players)
 
                     if ruck_box is not None:
                         player_dict = offside.filter_for_offside_detection(player_dict, ruck_box, overlap_threshold=0.4, width_expansion_factor=0, height_expansion_factor=0)
@@ -680,7 +701,12 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     (int(frame_width * 0.25), int(frame_height * 0.70))   # Bottom-left
                 ]
                 
-                point_locations = ['top_left', 'top_right', 'bottom_right', 'bottom_left']
+                point_locations = [
+                ('left_tryline', 'top_5m'),
+                ('right_tryline', 'top_5m'),
+                ('right_tryline', 'bottom_5m'),
+                ('left_tryline', 'bottom_5m')
+                ]           
                 
                 print(f"  Using automatic field point estimation for lineout")
 
@@ -703,17 +729,44 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 right_offside_line = field.fit_line_to_field(right_offside_line, field_outline)
 
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
+                
+                # Detect players
+                player_result = player.detect_players(resized_frame, player_model)
+                players = player.build_player_data(resized_frame, player_result)
+                players = player.assign_teams_by_colour(players)
 
-                # Run player detection on the current frame
-                players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False)
+                counts = player.count_teams_and_refs(players)
 
-                player_dict = offside.get_player_coord_dict(players_result)
+                for key in final_counts:
+                    final_counts[key] += counts[key]
 
-                if lineout_box is not None: 
+                print(
+                    f"Detected counts -> "
+                    f"Team 0: {counts['team_0']}, "
+                    f"Team 1: {counts['team_1']}, "
+                    f"Unknown: {counts['unknown_team']}, "
+                    f"Refs: {counts['refs']}"
+)
+
+                player_dict = player.build_player_coord_dict(players)
+                # Detect players on resized frame
+
+
+                if lineout_box is not None:
                     player_dict = offside.filter_for_offside_detection(player_dict, lineout_box, 0)
                     player_dict = offside.filter_detections_off_the_field(player_dict, lineout_box, imsize)
 
-                offside_player_boxes = offside.get_players_between_lines(player_dict, left_offside_line, right_offside_line)
+                if (left_offside_line is None or right_offside_line is None or
+                    any(v is None for v in left_offside_line) or
+                    any(v is None for v in right_offside_line)):
+                    print("Invalid offside lines for lineout; skipping offside player check")
+                    offside_player_boxes = []
+                else:
+                    offside_player_boxes = offside.get_players_between_lines(
+                        player_dict,
+                        left_offside_line,
+                        right_offside_line
+    )
 
                 # Draw the player box in red for offside players
                 lineout_frame = draw.draw_boxes(lineout_frame, offside_player_boxes, box_annotation='Offside', outline_colour=(0, 0, 255), show_image=False)
@@ -754,11 +807,30 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 if not imsize:
                     imsize = (frame.shape[1], frame.shape[0])
                 
-                # Convert lineout_box to resized coordinates (800x450)
+                # Convert lineout_box to resized coordinates (800x450)2
                 lineout_box = general.convert_coordinates(tuple(lineout_box), imsize)
                 
                 # Use current_display_frame (already resized to 800x450)
                 resized_frame = current_display_frame.copy()
+
+                player_result = player.detect_players(resized_frame, player_model)
+                players = player.build_player_data(resized_frame, player_result)
+                players = player.assign_teams_by_colour(players)
+
+                counts = player.count_teams_and_refs(players)
+
+                for key in final_counts:
+                    final_counts[key] += counts[key]
+
+                print(
+                    f"Detected counts -> "
+                    f"Team 0: {counts['team_0']}, "
+                    f"Team 1: {counts['team_1']}, "
+                    f"Unknown: {counts['unknown_team']}, "
+                    f"Refs: {counts['refs']}"
+                )
+
+                player_dict = player.build_player_coord_dict(players)
                 
                 # IMPORTANT: Check for hooker first! If hooker detected, use hooker position (green dot)
                 # Detect hooker on the current frame
@@ -829,9 +901,8 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
                 
-                # Detect players on resized frame
-                players_result = YOLO.perform_inference(resized_frame, player_model, show_output=False)
-                player_dict = offside.get_player_coord_dict(players_result)
+    
+         
                 
                 if lineout_box is not None:
                     player_dict = offside.filter_for_offside_detection(player_dict, lineout_box, 0)
@@ -977,6 +1048,11 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         
         # Print summary to console
         print("SUMMARY:")
+        print("\nPLAYER DETECTION SUMMARY:")
+        print(f"  Team 0 total detections: {final_counts['team_0']}")
+        print(f"  Team 1 total detections: {final_counts['team_1']}")
+        print(f"  Unknown team detections: {final_counts['unknown_team']}")
+        print(f"  Ref detections: {final_counts['refs']}")
         print(f"  Rucks detected: {ruck_count}")
         print(f"  Lineouts detected: {lineout_count}")
         print(f"  Total offside incidents: {total_offside}")
@@ -987,6 +1063,22 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         print("\nNo ruck or lineout detections found in video.")
     
     cv2.destroyAllWindows()
+
+
+def build_offside_player_dict(frame, player_model):
+    """
+    Run the player detection pipeline and convert the result into the
+    coordinate dictionary format used by offside_functions.
+    """
+    player_result = player.detect_players(frame, player_model)
+    players = player.build_player_data(frame, player_result)
+    players = player.assign_teams_by_colour(players)
+
+    player_dict = player.build_player_coord_dict(players)
+
+ 
+    #print([{"team": p["team"], "colour": p["jersey_colour"]} for p in players])
+    return player_dict
 
 
 if __name__ == "__main__":
