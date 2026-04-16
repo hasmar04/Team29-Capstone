@@ -1,0 +1,41 @@
+name: Run Test Suite
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          python3-tk \
+          libgl1 \
+          libglib2.0-0
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Optional but recommended if OpenCV issues appear
+    - name: Install headless OpenCV
+      run: |
+        pip install opencv-python-headless
+
+    - name: Run tests
+      run: |
+        xvfb-run python -m unittest discover -p "*unit_testing.py" -v
