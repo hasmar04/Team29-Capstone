@@ -382,6 +382,14 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
 
     frame_threshold = fps // 10
 
+    #Initialize team counts
+    final_counts = {
+    "team_0": 0,
+    "team_1": 0,
+    "unknown_team": 0,
+    "refs": 0
+    }
+
     # Initialise ruck and lineout frame counts
     ruck_frame_count = 0
     lineout_frame_count = 0
@@ -565,15 +573,21 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     ruck_frame = draw.draw_lines(ruck_frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
                     # Run player detection on the current frame
-                    player_result = player.detect_players(frame, player_model)
-                    players = player.build_player_data(frame, player_result)
+                    player_result = player.detect_players(resized_frame, player_model)
+                    players = player.build_player_data(resized_frame, player_result)
                     players = player.assign_teams_by_colour(players)
-                    team_counts = {0: 0, 1: 0, None: 0}
+                    counts = player.count_teams_and_refs(players)
 
-                    for p in players:
-                        team_counts[p["team"]] += 1
+                    for key in final_counts:
+                        final_counts[key] += counts[key]
 
-                    print(f"Team counts: {team_counts}")
+                    print(
+                        f"Detected counts -> "
+                        f"Team 0: {counts['team_0']}, "
+                        f"Team 1: {counts['team_1']}, "
+                        f"Unknown: {counts['unknown_team']}, "
+                        f"Refs: {counts['refs']}"
+                    )
                     player_dict = player.build_player_coord_dict(players)
 
                     if ruck_box is not None:
@@ -721,15 +735,22 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
 
-           
-                team_counts = {0: 0, 1: 0, None: 0}
-                for p in players:
-                    team_counts[p["team"]] += 1
-                print(f"    Team counts: {team_counts}")
+                counts = player.count_teams_and_refs(players)
+
+                for key in final_counts:
+                    final_counts[key] += counts[key]
+
+                print(
+                    f"Detected counts -> "
+                    f"Team 0: {counts['team_0']}, "
+                    f"Team 1: {counts['team_1']}, "
+                    f"Unknown: {counts['unknown_team']}, "
+                    f"Refs: {counts['refs']}"
+)
 
                 player_dict = player.build_player_coord_dict(players)
                 # Detect players on resized frame
-                player_dict = build_offside_player_dict(resized_frame, player_model)
+
 
                 if lineout_box is not None:
                     player_dict = offside.filter_for_offside_detection(player_dict, lineout_box, 0)
@@ -786,11 +807,30 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 if not imsize:
                     imsize = (frame.shape[1], frame.shape[0])
                 
-                # Convert lineout_box to resized coordinates (800x450)
+                # Convert lineout_box to resized coordinates (800x450)2
                 lineout_box = general.convert_coordinates(tuple(lineout_box), imsize)
                 
                 # Use current_display_frame (already resized to 800x450)
                 resized_frame = current_display_frame.copy()
+
+                player_result = player.detect_players(resized_frame, player_model)
+                players = player.build_player_data(resized_frame, player_result)
+                players = player.assign_teams_by_colour(players)
+
+                counts = player.count_teams_and_refs(players)
+
+                for key in final_counts:
+                    final_counts[key] += counts[key]
+
+                print(
+                    f"Detected counts -> "
+                    f"Team 0: {counts['team_0']}, "
+                    f"Team 1: {counts['team_1']}, "
+                    f"Unknown: {counts['unknown_team']}, "
+                    f"Refs: {counts['refs']}"
+                )
+
+                player_dict = player.build_player_coord_dict(players)
                 
                 # IMPORTANT: Check for hooker first! If hooker detected, use hooker position (green dot)
                 # Detect hooker on the current frame
@@ -861,8 +901,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
                 
-                # Detect players on resized frame
-                player_dict = build_offside_player_dict(resized_frame, player_model)
+    
          
                 
                 if lineout_box is not None:
@@ -1009,6 +1048,11 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         
         # Print summary to console
         print("SUMMARY:")
+        print("\nPLAYER DETECTION SUMMARY:")
+        print(f"  Team 0 total detections: {final_counts['team_0']}")
+        print(f"  Team 1 total detections: {final_counts['team_1']}")
+        print(f"  Unknown team detections: {final_counts['unknown_team']}")
+        print(f"  Ref detections: {final_counts['refs']}")
         print(f"  Rucks detected: {ruck_count}")
         print(f"  Lineouts detected: {lineout_count}")
         print(f"  Total offside incidents: {total_offside}")

@@ -1,5 +1,6 @@
 from sklearn.cluster import KMeans
 import numpy as np
+import offside_functions as offside
 
 
 def detect_players(frame, player_model):
@@ -23,14 +24,7 @@ def detect_players(frame, player_model):
 
 
 def filter_player_boxes(result):
-    """Filter the detected player bounding boxes based on confidence scores.
-
-    Args:
-        result: The raw output from the player detection model.
-
-    Returns:
-        list: A list of filtered player bounding boxes.
-    """
+    """Filter detected bounding boxes based on confidence score."""
     if result is None:
         return []
 
@@ -39,39 +33,46 @@ def filter_player_boxes(result):
 
     for box in result.boxes:
         conf = float(box.conf[0])
-
         if conf < CONF_THRESHOLD:
             continue
 
         x1, y1, x2, y2 = map(int, box.xyxy[0])
-        filtered_boxes.append((x1, y1, x2, y2))
+
+        class_id = None
+        class_name = "unknown"
+
+        if hasattr(box, "cls") and box.cls is not None:
+            class_id = int(box.cls[0])
+
+            if hasattr(result, "names") and result.names is not None:
+                class_name = str(result.names[class_id]).lower()
+
+        filtered_boxes.append({
+            "box": (x1, y1, x2, y2),
+            "class_id": class_id,
+            "class_name": class_name
+        })
 
     return filtered_boxes
 
-
 def get_player_bottom_centre(filtered_boxes):
     """
-    Calculate the bottom center point of each player's bounding box.
-
-    Args:
-        filtered_boxes (list): A list of filtered player bounding boxes.
-
-    Returns:
-        list: A list of player dictionaries with box and bottom centre.
+    Calculate the bottom centre point of each detected box.
     """
     players = []
 
-    for box in filtered_boxes:
-        x1, y1, x2, y2 = box
+    for item in filtered_boxes:
+        x1, y1, x2, y2 = item["box"]
         bottom_centre = ((x1 + x2) // 2, y2)
 
         players.append({
-            "box": box,
-            "bottom_centre": bottom_centre
+            "box": item["box"],
+            "bottom_centre": bottom_centre,
+            "class_id": item["class_id"],
+            "class_name": item["class_name"]
         })
 
     return players
-
 
 def get_jersey_crop(frame, players):
     """
@@ -174,8 +175,56 @@ def assign_teams_by_colour(players):
     for player in players:
         if "team" not in player:
             player["team"] = None
-
+    
     return players
+
+def get_offside_players(players, left_offside_line, right_offside_line):
+    """
+    Return the full player dictionaries for players between the two offside lines.
+
+    Args:
+        players (list): List of player dictionaries.
+        left_offside_line (tuple): Left offside line.
+        right_offside_line (tuple): Right offside line.
+
+    Returns:
+        list: Player dictionaries for offending players.
+    """
+    offside_players = []
+
+    for player in players:
+        player_position = player["bottom_centre"]
+
+        if offside.check_between_lines(player_position, left_offside_line, right_offside_line):
+            offside_players.append(player)
+
+    return offside_players
+
+
+def get_offside_player_boxes(offside_players):
+    """
+    Extract just the boxes for drawing.
+
+    Args:
+        offside_players (list): List of offside player dictionaries.
+
+    Returns:
+        list: Bounding boxes for offside players.
+    """
+    return [player["box"] for player in offside_players]
+
+
+def get_offside_team_labels(offside_players):
+    """
+    Extract team labels for offending players.
+
+    Args:
+        offside_players (list): List of offside player dictionaries.
+
+    Returns:
+        list: Team labels for offending players.
+    """
+    return [player.get("team") for player in offside_players]
 
 def build_player_coord_dict(players):
     """
@@ -195,3 +244,41 @@ def build_player_coord_dict(players):
         player_dict[player_coord] = player_box
 
     return player_dict
+
+def count_teams_and_refs(players):
+    """
+    Count detected team members and referees.
+
+    Returns:
+        dict: {
+            "team_0": int,
+            "team_1": int,
+            "unknown_team": int,
+            "refs": int
+        }
+    """
+    counts = {
+        "team_0": 0,
+        "team_1": 0,
+        "unknown_team": 0,
+        "refs": 0
+    }
+
+    for player in players:
+        class_name = str(player.get("class_name", "")).lower()
+
+        # Referee detection only works if your model has a separate ref class
+        if class_name in ["ref", "referee", "official"]:
+            counts["refs"] += 1
+            continue
+
+        team = player.get("team")
+
+        if team == 0:
+            counts["team_0"] += 1
+        elif team == 1:
+            counts["team_1"] += 1
+        else:
+            counts["unknown_team"] += 1
+
+    return counts
