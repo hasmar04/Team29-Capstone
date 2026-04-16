@@ -210,3 +210,6 @@ __marimo__/
 # Test/output artifacts
 inference/mixed/
 ruck_annotated_output/
+
+# Allow pytest.ini
+!pytest.ini
