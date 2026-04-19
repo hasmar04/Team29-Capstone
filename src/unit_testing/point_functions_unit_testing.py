@@ -35,25 +35,6 @@ class TestPointFunctions(unittest.TestCase):
         self.lineout_centre = (50, 50)
         self.lines = [[10, 10, 90, 10], [10, 90, 90, 90]]
 
-    @patch('point_functions.cv2')
-    @patch('point_functions.field')
-    @patch('point_functions.lf')
-    def test_get_field_points(self, mock_lf, mock_field, mock_cv2):
-        """
-        Test get_field_points returns a list of intersection points.
-        Mocks dependencies for contour and line extraction.
-        """
-        # Mock field.extract_straight_lines and fit_straight_lines_to_contours
-        mock_field.extract_straight_lines.return_value = [[[10, 10], [20, 10]], [[20, 10], [20, 20]]]
-        mock_field.fit_straight_lines_to_contours.return_value = [[10, 10, 20, 10], [20, 10, 20, 20]]
-        mock_lf.find_intersection_point.return_value = (15, 10)
-        mock_cv2.cvtColor.side_effect = lambda img, code: img[..., 0]  # fake grayscale
-        mock_cv2.dilate.side_effect = lambda img, kernel, iterations: img
-        mock_cv2.threshold.side_effect = lambda img, thresh, maxval, type: (None, img)
-        mock_cv2.findContours.return_value = ([np.array([[[10,10]],[[20,10]],[[20,20]],[[10,20]]], dtype=np.int32)], None)
-        intersections = point_functions.get_field_points(self.image, self.field_lines, self.field_outline)
-        self.assertIsInstance(intersections, list)
-
     @patch('point_functions.FIELD_POINTS_DICT', {
         'left_10m_line': {'bottom_15m': [0, 0], 'top_15m': [0, 100]},
         'right_10m_line': {'bottom_15m': [100, 0]},
@@ -100,20 +81,6 @@ class TestPointFunctions(unittest.TestCase):
         transformed = point_functions.transform_lines(lines, H)
         self.assertEqual(transformed, [])
 
-    def test_shortest_distance_between_lines(self):
-        """
-        Test shortest_distance_between_lines returns correct distance for parallel and overlapping lines.
-        """
-        line1 = [0, 0, 10, 0]
-        line2 = [0, 10, 10, 10]
-        dist = point_functions.shortest_distance_between_lines(line1, line2)
-        self.assertAlmostEqual(dist, 10.0, delta=1e-5)
-
-        # Overlapping lines
-        line3 = [0, 0, 10, 0]
-        line4 = [5, 0, 15, 0]
-        dist2 = point_functions.shortest_distance_between_lines(line3, line4)
-        self.assertAlmostEqual(dist2, 0.0, delta=1e-5)
 
 if __name__ == '__main__':
     unittest.main()

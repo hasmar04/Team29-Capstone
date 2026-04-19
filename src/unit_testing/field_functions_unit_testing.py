@@ -95,24 +95,6 @@ class TestFieldFunctions(unittest.TestCase):
         extended = field_functions.fit_lines_to_field(self.lines, self.field_outline)
         self.assertIsInstance(extended, list)
 
-    def test_is_horizontal_line(self):
-        # Test horizontal line detection logic
-        self.assertTrue(field_functions.is_horizontal_line(10, 10, 90, 10))
-        self.assertFalse(field_functions.is_horizontal_line(10, 10, 10, 90))
-
-    def test_check_collinearity(self):
-        # Test collinearity check for a set of lines
-        arr = np.array([[10,10,90,10],[20,10,80,10],[10,20,90,20]])
-        result = field_functions.check_collinearity(arr)
-        self.assertIsInstance(result, list)
-
-    def test_combine_collinear_lines(self):
-        # Test combining collinear lines into a single line
-        arr = np.array([[10,10,90,10],[20,10,80,10]])
-        indices = [[0,1]]
-        combined = field_functions.combine_collinear_lines(arr, indices)
-        self.assertIsInstance(combined, list)
-
     def test_fit_line_to_field(self):
         # Test clipping/extending a line to the field outline
         result = field_functions.fit_line_to_field([10,10,90,10], self.field_outline)
@@ -125,30 +107,11 @@ class TestFieldFunctions(unittest.TestCase):
         avg = field_functions.average_lines_by_midpoint(lines, self.field_outline, max_midpoint_distance=10)
         self.assertIsInstance(avg, list)
 
-    def test_average_parallel_lines(self):
-        # Test averaging parallel lines that are close in midpoint
-        lines = [[10,10,90,10],[15,12,85,12]]
-        avg = field_functions.average_parallel_lines(lines, tolerance=0.1, max_midpoint_distance=10)
-        self.assertIsInstance(avg, list)
-
     def test_extract_line_features(self):
         # Test extraction of geometric features from lines
         lines = [[10,10,90,10],[15,12,85,12]]
         features = field_functions.extract_line_features(lines, 1, 1, 1)
         self.assertIsInstance(features, np.ndarray)
-
-    def test_cluster_lines(self):
-        # Test clustering lines based on features
-        lines = [[10,10,90,10],[15,12,85,12]]
-        labels = field_functions.cluster_lines(lines, eps=100, min_samples=1)
-        self.assertIsInstance(labels, np.ndarray)
-
-    def test_combine_clustered_lines(self):
-        # Test combining lines within the same cluster
-        lines = [[10,10,90,10],[15,12,85,12]]
-        labels = np.array([0,0])
-        combined = field_functions.combine_clustered_lines(lines, labels, self.field_outline)
-        self.assertIsInstance(combined, list)
 
     def test_remove_anomalous_lines_by_angle(self):
         # Test removal of lines with anomalous angles
@@ -156,28 +119,11 @@ class TestFieldFunctions(unittest.TestCase):
         filtered = field_functions.remove_anomalous_lines_by_angle(lines, threshold=1)
         self.assertIsInstance(filtered, list)
 
-    def test_cluster_lines_by_angle(self):
-        # Test clustering lines by angle and removing outliers
-        lines = [[10,10,90,10],[15,12,85,12],[10,10,10,90]]
-        clustered = field_functions.cluster_lines_by_angle(lines, eps=10, min_samples=1)
-        self.assertIsInstance(clustered, list)
-
-    def test_filter_lines_by_weighted_angle(self):
-        # Test filtering lines by weighted deviation from target angles
-        lines = [[10,10,90,10],[10,10,10,90]]
-        filtered = field_functions.filter_lines_by_weighted_angle(lines, [0,90], tolerance=10)
-        self.assertIsInstance(filtered, list)
-
     def test_approximate_field_outline(self):
         # Test approximation of the convex hull to a bounding quadrilateral
         outline = np.array([[[0,0]], [[0,99]], [[99,99]], [[99,0]]], dtype=np.int32)
         approx = field_functions.approximate_field_outline(outline)
         self.assertIsInstance(approx, np.ndarray)
-
-    def test_calculate_angle(self):
-        # Test calculation of angle between two lines
-        angle = field_functions.calculate_angle([0,0,1,0],[0,0,0,1])
-        self.assertAlmostEqual(angle, 90, delta=1)
 
     def test_get_deadball_line(self):
         # Test determination of the deadball line

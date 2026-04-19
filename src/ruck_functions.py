@@ -127,7 +127,7 @@ def get_ball_release(ruck_results, ball_results, lineout_results, paused_state, 
         if ball_box:
             x1, y1, x2, y2 = map(int, ball_box)
             current_ball_centre = general.box_centre(ball_box)
-            tracker = cv2.TrackerCSRT_create()
+            tracker = cv2.TrackerMIL_create()
             tracker.init(frame, (x1, y1, x2 - x1, y2 - y1))
             tracker_active = True
             tracker_fail_counter = 0

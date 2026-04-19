@@ -3,8 +3,8 @@ RUGBY OFFSIDE DETECTION - ANALYSIS LOG
 ================================================================================
 
 Video: ruck
-Total Frames Analysed: 319
-Video Duration: 0:10
+Total Frames Analysed: 198
+Video Duration: 0:06
 Frame Rate: 30 fps
 
 ================================================================================
