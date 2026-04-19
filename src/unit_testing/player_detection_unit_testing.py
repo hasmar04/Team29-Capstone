@@ -100,6 +100,55 @@ class TestPlayerDetection(unittest.TestCase):
         self.assertEqual(counts["team_1"], 1)
         self.assertEqual(counts["unknown_team"], 1)
         self.assertEqual(counts["refs"], 1)
+    
+    def test_filter_exact_threshold(self):
+        boxes = [MockBox([0,0,10,10], 0.6, 0)]
+        result = MockResult(boxes)
+
+        filtered = filter_player_boxes(result)
+
+        self.assertEqual(len(filtered), 1)
+
+    def test_filter_empty_boxes(self):
+        result = MockResult([])
+        self.assertEqual(filter_player_boxes(result), [])
+
+    def test_extract_empty_crop(self):
+        players = [{"jersey_crop": np.array([])}]
+
+        players = extract_jersey_colour(players)
+
+        self.assertIsNone(players[0]["jersey_colour"])  
+    
+    def test_assign_one_player(self):
+        players = [{"jersey_colour": (255,0,0)}]
+
+        players = assign_teams_by_colour(players)
+
+        self.assertIsNone(players[0]["team"])
+
+    def test_assign_no_colours(self):
+        players = [{"jersey_colour": None}, {"jersey_colour": None}]
+
+        players = assign_teams_by_colour(players)
+
+        self.assertIsNone(players[0]["team"])
+        self.assertIsNone(players[1]["team"])
+
+    def test_count_empty(self):
+        counts = count_teams_and_refs([])
+
+        self.assertEqual(counts["team_0"], 0)
+        self.assertEqual(counts["refs"], 0)
+
+    def test_crop_outside_frame(self):
+        frame = np.ones((100,100,3), dtype=np.uint8)
+
+        players = [{"box": (-10,-10,20,50)}]
+
+        players = get_jersey_crop(frame, players)
+
+        self.assertIsNotNone(players[0]["jersey_crop"])
 
 
 if __name__ == "__main__":

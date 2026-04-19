@@ -15,6 +15,7 @@ import offside_functions as offside
 import point_functions as points
 import batch_processor as batch
 import player_detection as player
+import player_tracking as tracker
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 def main():
@@ -187,8 +188,13 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
     }
 
     video = cv2.VideoCapture(video_path)
+    
     if not video.isOpened():
         raise SystemExit("Video could not be loaded. Exiting...")
+    
+    player_tracker = tracker.PlayerTracker()
+    
+
 
     while video.isOpened():
         success, frame = video.read()
@@ -245,7 +251,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             ruck_frame = draw.draw_lines(frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
-            player_dict = build_offside_player_dict(frame, player_model)
+            player_dict = build_offside_player_dict(frame, player_model, player_tracker)
 
             offside_player_boxes = offside.get_players_between_lines(player_dict, left_ruck_line, right_ruck_line)
 
@@ -311,6 +317,18 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
             lineout_frame = draw.draw_points(frame, [lineout_centre], (0, 255, 0), show_image=False)
             lineout_frame = draw.draw_points(lineout_frame, [left_offside_point, right_offside_point], show_image=False)
 
+            for p in players:
+                x1, y1, x2, y2 = p["box"]
+                cv2.putText(
+                    lineout_frame,
+                    str(p["track_id"]),
+                    (x1, y1 - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 255, 0),
+                    2
+                )
+
             left_lineout_line = (intersection_point[0], intersection_point[1], left_offside_point[0], left_offside_point[1])
             right_lineout_line = (intersection_point[0], intersection_point[1], right_offside_point[0], right_offside_point[1])
         
@@ -319,7 +337,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             lineout_frame = draw.draw_lines(lineout_frame, [left_lineout_line, right_lineout_line], (255, 0, 0), show_image=False)
 
-            player_dict = build_offside_player_dict(frame, player_model)
+            player_dict = build_offside_player_dict(frame, player_model, player_tracker)
 
             if lineout_box is not None: 
                 player_dict = offside.filter_for_offside_detection(player_dict, lineout_box)
@@ -379,6 +397,8 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
 
     # Initialise paused state
     paused_state = {'paused': False, 'exit': False}
+
+    player_tracker = tracker.PlayerTracker()
 
     frame_threshold = fps // 10
 
@@ -576,7 +596,19 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     player_result = player.detect_players(resized_frame, player_model)
                     players = player.build_player_data(resized_frame, player_result)
                     players = player.assign_teams_by_colour(players)
+                    players = player_tracker.update(players)
                     counts = player.count_teams_and_refs(players)
+                    for p in players:
+                        x1, y1, x2, y2 = p["box"]
+                        cv2.putText(
+                            ruck_frame,
+                            str(p["track_id"]),
+                            (x1, y1 - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5,
+                            (0, 255, 0),
+                            2
+                        )
 
                     for key in final_counts:
                         final_counts[key] += counts[key]
@@ -734,6 +766,18 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 player_result = player.detect_players(resized_frame, player_model)
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
+                players = player_tracker.update(players)
+                for p in players:
+                    x1, y1, x2, y2 = p["box"]
+                    cv2.putText(
+                        lineout_frame,
+                        str(p["track_id"]),
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (0, 255, 0),
+                        2
+                    )
 
                 counts = player.count_teams_and_refs(players)
 
@@ -816,6 +860,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 player_result = player.detect_players(resized_frame, player_model)
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
+                players = player_tracker.update(players)
 
                 counts = player.count_teams_and_refs(players)
 
@@ -889,6 +934,18 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 # Create annotated frame
                 lineout_frame = draw.draw_points(resized_frame, [lineout_centre], (0, 255, 0), show_image=False)
                 lineout_frame = draw.draw_points(lineout_frame, [left_offside_point, right_offside_point], show_image=False)
+
+                for p in players:
+                    x1, y1, x2, y2 = p["box"]
+                    cv2.putText(
+                        lineout_frame,
+                        str(p["track_id"]),
+                        (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (0, 255, 0),
+                        2
+                    )
                 
                 # Create offside lines
                 left_offside_line = (intersection_point[0], intersection_point[1], left_offside_point[0], left_offside_point[1])
@@ -1065,7 +1122,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     cv2.destroyAllWindows()
 
 
-def build_offside_player_dict(frame, player_model):
+def build_offside_player_dict(frame, player_model, player_tracker=None):
     """
     Run the player detection pipeline and convert the result into the
     coordinate dictionary format used by offside_functions.
@@ -1073,6 +1130,9 @@ def build_offside_player_dict(frame, player_model):
     player_result = player.detect_players(frame, player_model)
     players = player.build_player_data(frame, player_result)
     players = player.assign_teams_by_colour(players)
+
+    if player_tracker is not None:
+        players = player_tracker.update(players)
 
     player_dict = player.build_player_coord_dict(players)
 
