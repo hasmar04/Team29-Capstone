@@ -97,13 +97,24 @@ def get_class_detections(result):
             - classes (numpy.ndarray): An array of class IDs corresponding to the detected objects.
             - confidences (numpy.ndarray): An array of confidence scores for each detection.
     """
-    boxes, classes, confidences = [], [], []
-    if result and result.boxes:
-        boxes = result.boxes.xyxy.cpu().numpy()
-        classes = result.boxes.cls.cpu().numpy()
-        confidences = result.boxes.conf.cpu().numpy()
 
-    return boxes, classes, confidences 
+    boxes, classes, confidences = [], [], []
+
+    if result and result.boxes:
+        boxes = result.boxes.xyxy
+        classes = result.boxes.cls
+        confidences = result.boxes.conf
+
+        if hasattr(boxes, "cpu"):
+            boxes = boxes.cpu().numpy()
+
+        if hasattr(classes, "cpu"):
+            classes = classes.cpu().numpy()
+
+        if hasattr(confidences, "cpu"):
+            confidences = confidences.cpu().numpy()
+
+    return boxes, classes, confidences
 
 def box_centre(box):
     """

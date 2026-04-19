@@ -386,6 +386,11 @@ def average_lines_by_midpoint(lines, field_outline, max_midpoint_distance=30):
         points_np = np.array(all_points, dtype=np.float32)
         [vx, vy, x0, y0] = cv2.fitLine(points_np, cv2.DIST_L2, 0, 0.01, 0.01)
 
+        vx = vx.item()
+        vy = vy.item()
+        x0 = x0.item()
+        y0 = y0.item()
+
         # Extend the line to its maximum extent
         t_min = float('inf')
         t_max = float('-inf')
