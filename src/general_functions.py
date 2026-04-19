@@ -99,20 +99,26 @@ def get_class_detections(result):
     """
 
     boxes, classes, confidences = [], [], []
-
+    
     if result and result.boxes:
         boxes = result.boxes.xyxy
         classes = result.boxes.cls
         confidences = result.boxes.conf
 
         if hasattr(boxes, "cpu"):
-            boxes = boxes.cpu().numpy()
+            boxes = boxes.cpu()
+        if hasattr(boxes, "numpy"):
+            boxes = boxes.numpy()
 
         if hasattr(classes, "cpu"):
-            classes = classes.cpu().numpy()
+            classes = classes.cpu()
+        if hasattr(classes, "numpy"):
+            classes = classes.numpy()
 
         if hasattr(confidences, "cpu"):
-            confidences = confidences.cpu().numpy()
+            confidences = confidences.cpu()
+        if hasattr(confidences, "numpy"):
+            confidences = confidences.numpy()
 
     return boxes, classes, confidences
 

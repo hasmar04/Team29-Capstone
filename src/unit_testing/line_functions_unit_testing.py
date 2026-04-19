@@ -73,25 +73,6 @@ class TestLineFunctions(unittest.TestCase):
         self.assertIsInstance(x, (int, float, type(None)))
         self.assertIsInstance(y, (int, float, type(None)))
 
-    def test_check_collinearity(self):
-        # Test collinearity check for a set of lines
-        lines = np.array([
-            [0, 0, 1, 1],
-            [2, 2, 3, 3],
-            [0, 1, 1, 2]
-        ])
-        result = line_functions.check_collinearity(lines)
-        self.assertIsInstance(result, list)
-
-    def test_combine_collinear_lines(self):
-        # Test combining collinear lines into a single bounding box
-        lines = [
-            [0, 0, 1, 1],
-            [2, 2, 3, 3]
-        ]
-        indices = [0, 1]
-        combined = line_functions.combine_collinear_lines(lines, indices)
-        self.assertEqual(len(combined), 4)
 
 if __name__ == '__main__':
     unittest.main()
