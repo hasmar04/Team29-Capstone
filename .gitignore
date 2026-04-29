@@ -213,3 +213,6 @@ ruck_annotated_output/
 
 # Allow pytest.ini
 !pytest.ini
+
+#VS Code settings
+.vscode/
