@@ -1,36 +1,16 @@
 from sklearn.cluster import KMeans
 import numpy as np
+from ultralytics import YOLO
 import offside_functions as offside
 import cv2
 
 
-def detect_players(frame, player_model):
-    """Detect players in the given frame using the provided player detection model.
-
-    Args:
-        frame (numpy.ndarray): The input video frame.
-        player_model: The pre-trained player detection model.
-
-    Returns:
-        object: The raw detection result from the model for the frame.
-    """
-    results = player_model(frame)
-
-    if not results:
-        return None
-    
-
-
-    return results[0]
-
-
 def filter_player_boxes(result):
-    """Filter detected bounding boxes based on confidence score."""
     if result is None:
         return []
 
     filtered_boxes = []
-    CONF_THRESHOLD = 0.6
+    CONF_THRESHOLD = 0.4
 
     for box in result.boxes:
         conf = float(box.conf[0])
@@ -56,13 +36,14 @@ def filter_player_boxes(result):
 
     return filtered_boxes
 
+
 def get_player_bottom_centre(filtered_boxes):
-    """
-    Calculate the bottom centre point of each detected box.
-    """
     players = []
 
     for item in filtered_boxes:
+        if item["class_name"] not in ["player", "person"]:
+            continue
+
         x1, y1, x2, y2 = item["box"]
         bottom_centre = ((x1 + x2) // 2, y2)
 
@@ -75,44 +56,76 @@ def get_player_bottom_centre(filtered_boxes):
 
     return players
 
+
 def get_jersey_crop(frame, players):
-    """
-    Extract the jersey region for each player and add it to the player data.
-
-    Args:
-        frame (numpy.ndarray): The input video frame.
-        players (list): A list of player dictionaries containing bounding boxes.
-
-    Returns:
-        list: The updated player list with jersey crops added.
-    """
     frame_height, frame_width = frame.shape[:2]
 
     for player in players:
         x1, y1, x2, y2 = player["box"]
+
+        box_width = x2 - x1
         box_height = y2 - y1
 
-        jersey_x1 = max(0, x1)
-        jersey_x2 = min(frame_width, x2)
-        jersey_y1 = max(0, y1 + int(box_height * 0.15))
-        jersey_y2 = min(frame_height, y1 + int(box_height * 0.50))
+        jersey_x1 = max(0, x1 + int(box_width * 0.30))
+        jersey_x2 = min(frame_width, x2 - int(box_width * 0.30))
+
+        jersey_y1 = max(0, y1 + int(box_height * 0.20))
+        jersey_y2 = min(frame_height, y1 + int(box_height * 0.60))
 
         jersey_crop = frame[jersey_y1:jersey_y2, jersey_x1:jersey_x2]
+
         player["jersey_crop"] = jersey_crop
+        player["jersey_crop_box"] = (jersey_x1, jersey_y1, jersey_x2, jersey_y2)
 
     return players
 
 
 def extract_jersey_colour(players):
     """
-    Extract the dominant jersey colour for each player and add it to the player data.
-
-    Args:
-        players (list): A list of player dictionaries containing jersey crops.
-
-    Returns:
-        list: The updated player list with dominant jersey colours added.
+    Extract jersey colour with adaptive crop shifting if colour is unreliable.
     """
+
+    def get_colour_from_crop(crop):
+        if crop is None or crop.size == 0:
+            return None, 0
+
+        crop = crop.astype(np.uint8)
+
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        h, s, v = cv2.split(hsv)
+
+        # Remove grass
+        green_mask = (h > 35) & (h < 85) & (s > 60)
+        valid_mask = ~green_mask
+
+        pixels = crop[valid_mask].reshape(-1, 3)
+
+        if len(pixels) == 0:
+            pixels = crop.reshape(-1, 3)
+
+        if len(pixels) == 0:
+            return None, 0
+
+        hsv_pixels = cv2.cvtColor(
+            pixels.reshape(-1, 1, 3).astype(np.uint8),
+            cv2.COLOR_BGR2HSV
+        ).reshape(-1, 3)
+
+        sat = hsv_pixels[:, 1]
+
+        # Confidence = how many high-sat pixels we have
+        high_sat_pixels = pixels[sat > 60]
+        confidence = len(high_sat_pixels)
+
+        if len(high_sat_pixels) > 10:
+            pixels = high_sat_pixels
+
+        median_colour = np.median(pixels, axis=0)
+        b, g, r = median_colour
+
+        return (int(r), int(g), int(b)), confidence
+
+
     for player in players:
         crop = player.get("jersey_crop")
 
@@ -120,122 +133,119 @@ def extract_jersey_colour(players):
             player["jersey_colour"] = None
             continue
 
-        if crop.dtype != np.uint8:
-            crop = crop.astype(np.uint8)
+        h, w = crop.shape[:2]
 
-        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        candidates = []
 
-        lower_green = np.array([35, 40, 40])
-        upper_green = np.array([85, 255, 255])
-        green_mask = cv2.inRange(hsv, lower_green, upper_green)
+        # Center
+        candidates.append(crop[int(h*0.2):int(h*0.6), int(w*0.2):int(w*0.8)])
 
-        _, _, v = cv2.split(hsv)
-        dark_mask = v < 50
+        # Slightly left
+        candidates.append(crop[int(h*0.2):int(h*0.6), int(w*0.1):int(w*0.6)])
 
-        invalid_mask = (green_mask > 0) | dark_mask
-        valid_pixels = crop[~invalid_mask]
+        # Slightly right
+        candidates.append(crop[int(h*0.2):int(h*0.6), int(w*0.4):int(w*0.9)])
 
-        pixels = valid_pixels.reshape(-1, 3)
+        # Higher (avoid shorts)
+        candidates.append(crop[int(h*0.1):int(h*0.5), int(w*0.2):int(w*0.8)])
 
-        # fallback if everything got filtered out
-        if len(pixels) == 0:
-            pixels = crop.reshape(-1, 3)
+        best_colour = None
+        best_conf = -1
 
-        # still empty? (extreme edge case)
-        if len(pixels) == 0:
-            player["jersey_colour"] = None
-            continue
+        for c in candidates:
+            colour, conf = get_colour_from_crop(c)
 
-        # small sample fallback
-        if len(pixels) < 2:
-            b, g, r = pixels[0]
-            player["jersey_colour"] = (int(r), int(g), int(b))
-            continue
-        kmeans = KMeans(n_clusters=2, n_init=10)
-        kmeans.fit(pixels)
+            if colour is None:
+                continue
 
-        counts = np.bincount(kmeans.labels_)
-        dominant_colour = kmeans.cluster_centers_[np.argmax(counts)]
+            if conf > best_conf:
+                best_conf = conf
+                best_colour = colour
 
-        b, g, r = dominant_colour
-        player["jersey_colour"] = (int(r), int(g), int(b))
+        player["jersey_colour"] = best_colour
 
     return players
-
-
 def build_player_data(frame, player_result):
-    """
-    Build player data including bounding box, bottom centre point,
-    jersey crop, and jersey colour.
-
-    Args:
-        frame (numpy.ndarray): The input video frame.
-        player_result: The raw output from the player detection model.
-
-    Returns:
-        list: A list of dictionaries containing player data.
-    """
     filtered_boxes = filter_player_boxes(player_result)
     players = get_player_bottom_centre(filtered_boxes)
     players = get_jersey_crop(frame, players)
     players = extract_jersey_colour(players)
 
+    # ✅ DEBUG (FIXED)
+    for p in players:
+        colour = p.get("jersey_colour")
+
+        if colour is not None:
+            bgr = np.uint8([[colour[::-1]]])
+            hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)[0][0]
+
+            print(
+                "ID:", p.get("track_id"),
+                "RGB:", colour,
+                "HSV:", hsv,
+                "team:", p.get("team")
+            )
+
     return players
 
 
 def assign_teams_by_colour(players):
-    """
-    Assign teams to players based on their dominant jersey colour.
+    colours = []
+    player_indices = []
 
-    Args:
-        players (list): A list of player dictionaries containing jersey colours.
+    for i, p in enumerate(players):
+        colour = p.get("jersey_colour")
+        if colour is None:
+            continue
 
-    Returns:
-        list: The updated player list with assigned team labels.
-    """
-    colours = [p["jersey_colour"] for p in players if p.get("jersey_colour") is not None]
+        colours.append(colour)
+        player_indices.append(i)
 
     if len(colours) < 2:
         for p in players:
             p["team"] = None
         return players
 
-    kmeans = KMeans(n_clusters=2, random_state=0).fit(colours)
+    rgb_colours = np.array(colours, dtype=np.uint8)
 
-    centres = kmeans.cluster_centers_
+    hsv_colours = cv2.cvtColor(
+        rgb_colours.reshape(-1, 1, 3),
+        cv2.COLOR_RGB2HSV
+    ).reshape(-1, 3)
 
-    # sort clusters by brightness so labels stay consistent
-    brightness = [np.sum(c) for c in centres]
-    sorted_indices = np.argsort(brightness)
+    features = []
 
-    label_map = {
-        sorted_indices[0]: 0,
-        sorted_indices[1]: 1
-    }
+    for h, s, v in hsv_colours:
+        hue_angle = (float(h) / 180.0) * 2.0 * np.pi
+        hue_x = np.cos(hue_angle)
+        hue_y = np.sin(hue_angle)
 
-    i = 0
+        sat = float(s) / 255.0
+        val = float(v) / 255.0
+
+        features.append([
+            hue_x * sat,
+            hue_y * sat,
+            sat * 0.5,
+            val * 0.3
+        ])
+
+    features = np.array(features, dtype=float)
+
+    kmeans = KMeans(n_clusters=2, random_state=0, n_init=10)
+    labels = kmeans.fit_predict(features)
+
+    for player_index, label in zip(player_indices, labels):
+        players[player_index]["team"] = int(label)
+
     for p in players:
-        if p["jersey_colour"] is not None:
-            raw_label = int(kmeans.labels_[i])
-            p["team"] = label_map[raw_label]
-            i += 1
-        else:
+        if p.get("jersey_colour") is None:
             p["team"] = None
 
     return players
 
+
 def get_offside_players(players, left_offside_line, right_offside_line):
-    """
-    Return the full player dictionaries for players between the two offside lines.
-
-    Args:
-        players (list): List of player dictionaries.
-        left_offside_line (tuple): Left offside line.
-        right_offside_line (tuple): Right offside line.
-
-    Returns:
-        list: Player dictionaries for offending players.
-    """
     offside_players = []
 
     for player in players:
@@ -248,40 +258,14 @@ def get_offside_players(players, left_offside_line, right_offside_line):
 
 
 def get_offside_player_boxes(offside_players):
-    """
-    Extract just the boxes for drawing.
-
-    Args:
-        offside_players (list): List of offside player dictionaries.
-
-    Returns:
-        list: Bounding boxes for offside players.
-    """
     return [player["box"] for player in offside_players]
 
 
 def get_offside_team_labels(offside_players):
-    """
-    Extract team labels for offending players.
-
-    Args:
-        offside_players (list): List of offside player dictionaries.
-
-    Returns:
-        list: Team labels for offending players.
-    """
     return [player.get("team") for player in offside_players]
 
+
 def build_player_coord_dict(players):
-    """
-    Convert player list into a coordinate dictionary for offside detection.
-
-    Args:
-        players (list): A list of player dictionaries.
-
-    Returns:
-        dict: Mapping of player bottom-centre coordinates to their bounding boxes.
-    """
     player_dict = {}
 
     for player in players:
@@ -291,18 +275,8 @@ def build_player_coord_dict(players):
 
     return player_dict
 
-def count_teams_and_refs(players):
-    """
-    Count detected team members and referees.
 
-    Returns:
-        dict: {
-            "team_0": int,
-            "team_1": int,
-            "unknown_team": int,
-            "refs": int
-        }
-    """
+def count_teams_and_refs(players):
     counts = {
         "team_0": 0,
         "team_1": 0,
@@ -313,7 +287,6 @@ def count_teams_and_refs(players):
     for player in players:
         class_name = str(player.get("class_name", "")).lower()
 
-        # Referee detection only works if your model has a separate ref class
         if class_name in ["ref", "referee", "official"]:
             counts["refs"] += 1
             continue

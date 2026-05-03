@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import os
 import ui_functions as UI
-import yolo_functions as YOLO
+import yolo_functions as yolo_utils
 import field_functions as field
 import ruck_functions as ruck
 import lineout_functions as lineout
@@ -75,10 +75,10 @@ def main():
 
     # Loading ruck, lineout, ball and player detection models
     print("\nLoading YOLO models...")
-    ruck_model = YOLO.load_model(os.path.join(models_dir, 'ruck.pt'))
-    lineout_model = YOLO.load_model(os.path.join(models_dir, 'lineout.pt'))
-    ball_model = YOLO.load_model(os.path.join(models_dir, 'ball.pt'))
-    player_model = YOLO.load_model(os.path.join(models_dir, 'player-id.pt'))
+    ruck_model = yolo_utils.load_model(os.path.join(models_dir, 'ruck.pt'))
+    lineout_model = yolo_utils.load_model(os.path.join(models_dir, 'lineout.pt'))
+    ball_model = yolo_utils.load_model(os.path.join(models_dir, 'ball.pt'))
+    player_model = yolo_utils.load_model(os.path.join(models_dir, 'player-id.pt'))
     print("✓ YOLO models loaded successfully")
 
     # BATCH MODE
@@ -211,7 +211,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
         general.display_frame_manual(frame, manual_pause_state, fps, window_id='Frame', window_title="Select 'L' for lineout, 'R' for ruck, 'P' to pause/play and 'Q' to quit")
 
         if manual_pause_state['ruck']:
-            ruck_result = YOLO.perform_inference(frame, ruck_model, False)
+            ruck_result = yolo_utils.perform_inference(frame, ruck_model, False)
 
             try:
                 ruck_result = next(ruck_result)
@@ -267,7 +267,7 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
         if manual_pause_state['lineout']:
             # CHECK FOR HOOKER AND/OR LINEOUT IN IMAGE, OTHERWISE
-            lineout_result = YOLO.perform_inference(frame, lineout_model, False)
+            lineout_result = yolo_utils.perform_inference(frame, lineout_model, False)
             lineout_box = None
             lineout_centre = None
 
@@ -316,6 +316,17 @@ def manual_mode(video_path, fps, ruck_model, lineout_model, player_model):
 
             lineout_frame = draw.draw_points(frame, [lineout_centre], (0, 255, 0), show_image=False)
             lineout_frame = draw.draw_points(lineout_frame, [left_offside_point, right_offside_point], show_image=False)
+            
+            player_result_gen = yolo_utils.perform_inference(frame, player_model, False)
+
+            try:
+                player_result = next(player_result_gen)
+            except StopIteration:
+                player_result = None
+
+            players = player.build_player_data(frame, player_result)
+            players = player.assign_teams_by_colour(players)
+            players = player_tracker.update(players)
 
             for p in players:
                 x1, y1, x2, y2 = p["box"]
@@ -428,9 +439,9 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     total_frame_count = 0  # Track total frames processed in Pass 1
 
     # Create generators for all inference predictions from the ruck and lineout models
-    ruck_results = YOLO.perform_inference(video_path, ruck_model, False, 0.1)
-    lineout_results = YOLO.perform_inference(video_path, lineout_model, False, 0.1) # Also includes hooker detection
-    ball_results = YOLO.perform_inference(video_path, ball_model, False, 0.4) # Ball detection
+    ruck_results = yolo_utils.perform_inference(video_path, ruck_model, False, 0.1)
+    lineout_results = yolo_utils.perform_inference(video_path, lineout_model, False, 0.1) # Also includes hooker detection
+    ball_results = yolo_utils.perform_inference(video_path, ball_model, False, 0.4) # Ball detection
 
     print("Video inference complete")
     print("Commencing analysis...")
@@ -593,22 +604,58 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     ruck_frame = draw.draw_lines(ruck_frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
 
                     # Run player detection on the current frame
-                    player_result = player.detect_players(resized_frame, player_model)
+                    player_result_gen = yolo_utils.perform_inference(resized_frame, player_model, False)
+
+                    try:
+                        player_result = next(player_result_gen)
+                    except StopIteration:
+                        player_result = None
+
                     players = player.build_player_data(resized_frame, player_result)
                     players = player.assign_teams_by_colour(players)
                     players = player_tracker.update(players)
+                    ruck_frame = draw.draw_player_debug(ruck_frame, players)
                     counts = player.count_teams_and_refs(players)
                     for p in players:
                         x1, y1, x2, y2 = p["box"]
+
+                        team = p.get("team")
+                        track_id = p.get("track_id")
+
+                        if team == 0:
+                            box_colour = (255, 0, 0)
+                        elif team == 1:
+                            box_colour = (0, 0, 255)
+                        else:
+                            box_colour = (0, 255, 255)
+
+                        # Main player box
+                        cv2.rectangle(ruck_frame, (x1, y1), (x2, y2), box_colour, 2)
+
+                        label = f"ID:{track_id} T:{team}"
+
                         cv2.putText(
                             ruck_frame,
-                            str(p["track_id"]),
+                            label,
                             (x1, y1 - 5),
                             cv2.FONT_HERSHEY_SIMPLEX,
                             0.5,
-                            (0, 255, 0),
+                            box_colour,
                             2
                         )
+
+                        # ---- JERSEY CROP BOX (GREEN) ----
+                        crop_box = p.get("jersey_crop_box")
+                        if crop_box is not None:
+                            jx1, jy1, jx2, jy2 = crop_box
+
+                            cv2.rectangle(
+                                ruck_frame,
+                                (jx1, jy1),
+                                (jx2, jy2),
+                                (0, 255, 0),
+                                2
+                            )
 
                     for key in final_counts:
                         final_counts[key] += counts[key]
@@ -763,22 +810,64 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
                 
                 # Detect players
-                player_result = player.detect_players(resized_frame, player_model)
+                player_result_gen = yolo_utils.perform_inference(resized_frame, player_model, False)
+
+                try:
+                    player_result = next(player_result_gen)
+                except StopIteration:
+                    player_result = None
+
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
                 players = player_tracker.update(players)
                 for p in players:
+                    print(
+                        "ID:", p.get("track_id"),
+                        "team:", p.get("team"),
+                        "colour:", p.get("jersey_colour"),
+                        "box:", p.get("box")
+                    )
+                lineout_frame = draw.draw_player_debug(lineout_frame, players)
+                for p in players:
                     x1, y1, x2, y2 = p["box"]
+
+                    team = p.get("team")
+                    track_id = p.get("track_id")
+
+                    if team == 0:
+                        box_colour = (255, 0, 0)
+                    elif team == 1:
+                        box_colour = (0, 0, 255)
+                    else:
+                        box_colour = (0, 255, 255)
+
+                    # Main player box
+                    cv2.rectangle(lineout_frame, (x1, y1), (x2, y2), box_colour, 2)
+
+                    label = f"ID:{track_id} T:{team}"
+
                     cv2.putText(
                         lineout_frame,
-                        str(p["track_id"]),
+                        label,
                         (x1, y1 - 5),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.5,
-                        (0, 255, 0),
+                        box_colour,
                         2
                     )
 
+                    # ---- JERSEY CROP BOX (GREEN) ----
+                    crop_box = p.get("jersey_crop_box")
+                    if crop_box is not None:
+                        jx1, jy1, jx2, jy2 = crop_box
+
+                        cv2.rectangle(
+                            lineout_frame,
+                            (jx1, jy1),
+                            (jx2, jy2),
+                            (0, 255, 0),
+                            2
+                        )
                 counts = player.count_teams_and_refs(players)
 
                 for key in final_counts:
@@ -857,7 +946,13 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 # Use current_display_frame (already resized to 800x450)
                 resized_frame = current_display_frame.copy()
 
-                player_result = player.detect_players(resized_frame, player_model)
+                player_result_gen = yolo_utils.perform_inference(resized_frame, player_model, False)
+
+                try:
+                    player_result = next(player_result_gen)
+                except StopIteration:
+                    player_result = None
+
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
                 players = player_tracker.update(players)
@@ -993,54 +1088,49 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     print(f"PASS 1 COMPLETE: Detection and Analysis")
     print(f"Total detections found: {len(detection_log)}")
     print(f"{'='*80}\n")
-    
+
     # PASS 2: Create annotated video with ALL frames
     if detection_log:
         print(f"{'='*80}")
         print(f"PASS 2: Creating Annotated Video")
         print(f"{'='*80}\n")
         print(f"Reading video file again to create output with all frames...")
-        
+
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
             print("Error: Could not open video file for pass 2")
             return
-        
-        # Setup video writer
+
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_video_path, fourcc, fps, (800, 450))
-        
+
         frame_num = 1
         total_frames_written = 0
-        
+
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            
-            # Resize to match detection resolution
+
             display_frame = cv2.resize(frame, (800, 450))
-            
-            # Check if this frame should have an overlay
+
             overlay_frame = None
             for detection in detection_log:
                 if detection['overlay_start'] <= frame_num <= detection['overlay_end']:
                     overlay_frame = detection['annotated_frame'].copy()
                     break
-            
-            # Write either overlaid or original frame
+
             if overlay_frame is not None:
                 out.write(overlay_frame)
             else:
                 out.write(display_frame)
-            
+
             total_frames_written += 1
             frame_num += 1
-            
-            # Show progress every 100 frames
+
             if total_frames_written % 100 == 0:
                 print(f"  Processed {total_frames_written} frames...")
-        
+
         cap.release()
         out.release()
         
@@ -1127,7 +1217,14 @@ def build_offside_player_dict(frame, player_model, player_tracker=None):
     Run the player detection pipeline and convert the result into the
     coordinate dictionary format used by offside_functions.
     """
-    player_result = player.detect_players(frame, player_model)
+
+    player_result_gen = yolo_utils.perform_inference(frame, player_model, False)
+
+    try:
+        player_result = next(player_result_gen)
+    except StopIteration:
+        raise SystemExit("Player YOLO inference failed")
+
     players = player.build_player_data(frame, player_result)
     players = player.assign_teams_by_colour(players)
 
@@ -1136,8 +1233,6 @@ def build_offside_player_dict(frame, player_model, player_tracker=None):
 
     player_dict = player.build_player_coord_dict(players)
 
- 
-    #print([{"team": p["team"], "colour": p["jersey_colour"]} for p in players])
     return player_dict
 
 
