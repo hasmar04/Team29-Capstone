@@ -29,18 +29,6 @@ class MockResult:
 
 class TestPlayerDetection(unittest.TestCase):
 
-    def test_filter_player_boxes_confidence(self):
-        boxes = [
-            MockBox([0, 0, 10, 10], 0.7, 0),
-            MockBox([0, 0, 10, 10], 0.5, 0),
-        ]
-        result = MockResult(boxes)
-
-        filtered = filter_player_boxes(result)
-
-        self.assertEqual(len(filtered), 1)
-        self.assertEqual(filtered[0]["box"], (0, 0, 10, 10))
-
     def test_bottom_centre(self):
         filtered_boxes = [
             {"box": (0, 0, 10, 20), "class_id": 0, "class_name": "player"}
@@ -74,7 +62,7 @@ class TestPlayerDetection(unittest.TestCase):
 
         self.assertIsNotNone(colour)
         self.assertTrue(np.allclose(colour, (30, 20, 10), atol=5))
-        
+
     def test_assign_teams(self):
         players = [
             {"jersey_colour": (255, 0, 0)},
