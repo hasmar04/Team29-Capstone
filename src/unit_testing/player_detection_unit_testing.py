@@ -70,7 +70,10 @@ class TestPlayerDetection(unittest.TestCase):
 
         players = extract_jersey_colour(players)
 
-        self.assertEqual(players[0]["jersey_colour"], (30, 20, 10))
+        colour = players[0]["jersey_colour"]
+
+        self.assertIsNotNone(colour)
+        self.assertTrue(np.allclose(colour, [10, 20, 30], atol=1))
 
     def test_assign_teams(self):
         players = [

@@ -117,7 +117,7 @@ def extract_jersey_colour(players):
         crop = player.get("jersey_crop")
 
         if crop is None or crop.size == 0:
-            player["colour"] = None
+            player["jersey_colour"] = None
             continue
 
         hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
@@ -136,7 +136,7 @@ def extract_jersey_colour(players):
         valid_pixels = crop[~invalid_mask]
 
         if len(valid_pixels) < 10:
-            player["colour"] = None
+            player["jersey_colour"] = None
             continue
 
         pixels = valid_pixels.reshape(-1, 3)
@@ -148,7 +148,7 @@ def extract_jersey_colour(players):
         counts = np.bincount(kmeans.labels_)
         dominant_colour = kmeans.cluster_centers_[np.argmax(counts)]
 
-        player["colour"] = dominant_colour
+        player["jersey_colour"] = dominant_colour
 
     return players
 
