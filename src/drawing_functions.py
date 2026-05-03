@@ -191,3 +191,34 @@ def draw_boxes(image, boxes, outline_colour=(255, 0, 0), line_thickness=2, windo
         plt.show()
 
     return image_with_boxes
+
+def draw_player_debug(frame, players):
+    for p in players:
+        x1, y1, x2, y2 = p["box"]
+        team = p.get("team")
+        track_id = p.get("track_id")
+
+        # colour per team
+        if team == 0:
+            colour = (255, 0, 0)   # blue
+        elif team == 1:
+            colour = (0, 0, 255)   # red
+        else:
+            colour = (0, 255, 255) # yellow (unknown)
+
+        # draw box
+        cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
+
+        label = f"ID:{track_id} T:{team}"
+
+        cv2.putText(
+            frame,
+            label,
+            (x1, y1 - 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            colour,
+            2
+        )
+
+    return frame

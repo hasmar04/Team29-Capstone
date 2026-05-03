@@ -451,7 +451,7 @@ class RugbyOffsideGUI:
                 self.models["ruck"] = YOLO.load_model(os.path.join(self.models_dir, "ruck.pt"))
                 self.models["lineout"] = YOLO.load_model(os.path.join(self.models_dir, "lineout.pt"))
                 self.models["ball"] = YOLO.load_model(os.path.join(self.models_dir, "ball.pt"))
-                self.models["player"] = YOLO.load_model(os.path.join(self.models_dir, "yolo11n.pt"))
+                self.models["player"] = YOLO.load_model(os.path.join(self.models_dir, "player-id.pt"))
                 self.models_loaded = True
                 self.progress_queue.put(("model_loaded", "YOLO models loaded successfully"))
             except Exception as e:
