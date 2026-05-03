@@ -1,6 +1,7 @@
 from sklearn.cluster import KMeans
 import numpy as np
 import offside_functions as offside
+import cv2
 
 
 def detect_players(frame, player_model):
@@ -93,8 +94,8 @@ def get_jersey_crop(frame, players):
 
         jersey_x1 = max(0, x1)
         jersey_x2 = min(frame_width, x2)
-        jersey_y1 = max(0, y1 + int(box_height * 0.2))
-        jersey_y2 = min(frame_height, y1 + int(box_height * 0.55))
+        jersey_y1 = max(0, y1 + int(box_height * 0.15))
+        jersey_y2 = min(frame_height, y1 + int(box_height * 0.50))
 
         jersey_crop = frame[jersey_y1:jersey_y2, jersey_x1:jersey_x2]
         player["jersey_crop"] = jersey_crop
@@ -113,16 +114,41 @@ def extract_jersey_colour(players):
         list: The updated player list with dominant jersey colours added.
     """
     for player in players:
-        jersey_crop = player.get("jersey_crop")
+        crop = player.get("jersey_crop")
 
-        if jersey_crop is None or jersey_crop.size == 0:
-            player["jersey_colour"] = None
+        if crop is None or crop.size == 0:
+            player["colour"] = None
             continue
 
-        avg_bgr = np.mean(jersey_crop, axis=(0, 1))
-        b, g, r = avg_bgr
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
 
-        player["jersey_colour"] = (int(r), int(g), int(b))
+        # mask out green (grass)
+        lower_green = np.array([35, 40, 40])
+        upper_green = np.array([85, 255, 255])
+        green_mask = cv2.inRange(hsv, lower_green, upper_green)
+
+        # mask out very dark pixels (shadows)
+        _, _, v = cv2.split(hsv)
+        dark_mask = v < 50
+
+        # remove masked pixels
+        invalid_mask = (green_mask > 0) | dark_mask
+        valid_pixels = crop[~invalid_mask]
+
+        if len(valid_pixels) < 10:
+            player["colour"] = None
+            continue
+
+        pixels = valid_pixels.reshape(-1, 3)
+
+        # find dominant colour
+        kmeans = KMeans(n_clusters=2, n_init=10)
+        kmeans.fit(pixels)
+
+        counts = np.bincount(kmeans.labels_)
+        dominant_colour = kmeans.cluster_centers_[np.argmax(counts)]
+
+        player["colour"] = dominant_colour
 
     return players
 
@@ -157,25 +183,35 @@ def assign_teams_by_colour(players):
     Returns:
         list: The updated player list with assigned team labels.
     """
-    valid_players = [player for player in players if player.get("jersey_colour") is not None]
+    colours = [p["colour"] for p in players if p["colour"] is not None]
 
-    if len(valid_players) < 2:
-        for player in players:
-            player["team"] = None
+    if len(colours) < 2:
+        for p in players:
+            p["team"] = None
         return players
 
-    colours = np.array([player["jersey_colour"] for player in valid_players])
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(colours)
 
-    kmeans = KMeans(n_clusters=2, random_state=42, n_init=10)
-    team_labels = kmeans.fit_predict(colours)
+    centres = kmeans.cluster_centers_
 
-    for player, label in zip(valid_players, team_labels):
-        player["team"] = int(label)
+    # sort clusters by brightness so labels stay consistent
+    brightness = [np.sum(c) for c in centres]
+    sorted_indices = np.argsort(brightness)
 
-    for player in players:
-        if "team" not in player:
-            player["team"] = None
-    
+    label_map = {
+        sorted_indices[0]: 0,
+        sorted_indices[1]: 1
+    }
+
+    i = 0
+    for p in players:
+        if p["colour"] is not None:
+            raw_label = int(kmeans.labels_[i])
+            p["team"] = label_map[raw_label]
+            i += 1
+        else:
+            p["team"] = None
+
     return players
 
 def get_offside_players(players, left_offside_line, right_offside_line):
