@@ -120,35 +120,45 @@ def extract_jersey_colour(players):
             player["jersey_colour"] = None
             continue
 
+        if crop.dtype != np.uint8:
+            crop = crop.astype(np.uint8)
+
         hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
 
-        # mask out green (grass)
         lower_green = np.array([35, 40, 40])
         upper_green = np.array([85, 255, 255])
         green_mask = cv2.inRange(hsv, lower_green, upper_green)
 
-        # mask out very dark pixels (shadows)
         _, _, v = cv2.split(hsv)
         dark_mask = v < 50
 
-        # remove masked pixels
         invalid_mask = (green_mask > 0) | dark_mask
         valid_pixels = crop[~invalid_mask]
 
-        if len(valid_pixels) < 10:
+        pixels = valid_pixels.reshape(-1, 3)
+
+        # fallback if everything got filtered out
+        if len(pixels) == 0:
+            pixels = crop.reshape(-1, 3)
+
+        # still empty? (extreme edge case)
+        if len(pixels) == 0:
             player["jersey_colour"] = None
             continue
 
-        pixels = valid_pixels.reshape(-1, 3)
-
-        # find dominant colour
+        # small sample fallback
+        if len(pixels) < 2:
+            b, g, r = pixels[0]
+            player["jersey_colour"] = (int(r), int(g), int(b))
+            continue
         kmeans = KMeans(n_clusters=2, n_init=10)
         kmeans.fit(pixels)
 
         counts = np.bincount(kmeans.labels_)
         dominant_colour = kmeans.cluster_centers_[np.argmax(counts)]
 
-        player["jersey_colour"] = dominant_colour
+        b, g, r = dominant_colour
+        player["jersey_colour"] = (int(r), int(g), int(b))
 
     return players
 
@@ -183,7 +193,7 @@ def assign_teams_by_colour(players):
     Returns:
         list: The updated player list with assigned team labels.
     """
-    colours = [p["colour"] for p in players if p["colour"] is not None]
+    colours = [p["jersey_colour"] for p in players if p.get("jersey_colour") is not None]
 
     if len(colours) < 2:
         for p in players:
@@ -205,7 +215,7 @@ def assign_teams_by_colour(players):
 
     i = 0
     for p in players:
-        if p["colour"] is not None:
+        if p["jersey_colour"] is not None:
             raw_label = int(kmeans.labels_[i])
             p["team"] = label_map[raw_label]
             i += 1
