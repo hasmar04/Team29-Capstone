@@ -28,6 +28,8 @@ import offside_functions as offside
 import point_functions as points
 import batch_processor as batch
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
+from events.session_stats import DetectionSessionStats
+from events.detection_event import DetectionEvent
 
 import main
 

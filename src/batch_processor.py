@@ -36,6 +36,8 @@ import general_functions as general
 import offside_functions as offside
 import point_functions as points
 import player_detection as player
+import player_tracking as tracker
+from collections import deque
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 
@@ -202,6 +204,21 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
     ruck_frame_count = 0
     lineout_frame_count = 0
     frame_number = 0
+
+    # Seconds before detection to include
+    pre_event_seconds = 3
+    
+    # Seconds to hold annotated frame
+    hold_event_seconds = 5
+
+    # Number of frames to buffer before event
+    buffer_size = fps * pre_event_seconds
+
+    # Rolling frame history
+    frame_buffer = deque(maxlen=buffer_size)
+    
+    # Persistent player tracker
+    player_tracker = tracker.PlayerTracker()
     
     # Detection data storage
     detections_data = {
@@ -251,6 +268,11 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
             continue
         
         frame = ruck_result.orig_img
+
+        # Store frame in rolling buffer
+        frame_buffer.append((frame_number, frame.copy()))
+
+
         
         # Extract detections
         ruck_model_boxes, ruck_model_classes, ruck_model_confidences = general.get_class_detections(ruck_result)
@@ -334,10 +356,20 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
             ruck_frame = draw.draw_points(resized_frame, [ruck_left, ruck_right], (0, 255, 0), show_image=False)
             ruck_frame = draw.draw_lines(ruck_frame, [left_ruck_line, right_ruck_line], (0, 0, 255), show_image=False)
             
-            # Detect players
-            player_result = player.detect_players(resized_frame, player_model)
+            # Run player YOLO inference 
+            player_result_gen = YOLO.perform_inference(resized_frame, player_model, False)
+
+            try:
+                player_result = next(player_result_gen)
+            except StopIteration:
+                player_result = None
+
+            # Build player data, assign teams, then stabilise with tracker
             players = player.build_player_data(resized_frame, player_result)
             players = player.assign_teams_by_colour(players)
+            players = player_tracker.update(players)
+
+            # Convert tracked players into the format offside_functions expects
             player_dict = player.build_player_coord_dict(players)
             
             if ruck_box_converted is not None:
@@ -350,7 +382,17 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
             ruck_frame = draw.draw_boxes(ruck_frame, offside_player_boxes, box_annotation='Offside', 
                                         outline_colour=(0, 0, 255), show_image=False, font_scale=0.5, font_thickness=1)
             
-            annotated_frames.append((frame_number, ruck_frame))
+            # ==========================================================
+            # BUILD EVENT CLIP
+            # ==========================================================
+
+            # Add pre-event footage
+            annotated_frames.extend(list(frame_buffer))
+
+            # Hold annotated frame for several seconds
+            for _ in range(fps * hold_event_seconds):
+                annotated_frames.append((frame_number, ruck_frame.copy()))
+
             
             # Record detection data
             event_data = {
@@ -445,10 +487,20 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
                 
                 lineout_frame = draw.draw_lines(lineout_frame, [left_offside_line, right_offside_line], (255, 0, 0), show_image=False)
                 
-                # Detect players
-                player_result = player.detect_players(resized_frame, player_model)
+                # Run player YOLO inference 
+                player_result_gen = YOLO.perform_inference(resized_frame, player_model, False)
+
+                try:
+                    player_result = next(player_result_gen)
+                except StopIteration:
+                    player_result = None
+
+                # Build player data, assign teams, then stabilise with tracker
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
+                players = player_tracker.update(players)
+
+                # Convert tracked players into the format offside_functions expects
                 player_dict = player.build_player_coord_dict(players)
                 
                 if lineout_box_converted is not None:
@@ -460,7 +512,17 @@ def auto_mode_batch(video_path, output_dir, ruck_model, lineout_model, ball_mode
                 lineout_frame = draw.draw_boxes(lineout_frame, offside_player_boxes, box_annotation='Offside', 
                                                outline_colour=(0, 0, 255), show_image=False)
                 
-                annotated_frames.append((frame_number, lineout_frame))
+                # ==========================================================
+                # BUILD EVENT CLIP
+                # ==========================================================
+
+                # Add pre-event footage
+                annotated_frames.extend(list(frame_buffer))
+
+                # Hold annotated frame for several seconds
+                for _ in range(fps * hold_event_seconds):
+                    annotated_frames.append((frame_number, lineout_frame.copy()))
+
                 
                 # Record detection data
                 event_data = {

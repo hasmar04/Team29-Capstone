@@ -3,7 +3,7 @@ RUGBY OFFSIDE DETECTION ANALYSIS REPORT
 ================================================================================
 
 Video File: Lineout-5.gif
-Processing Date: 2025-10-01 19:42:48
+Processing Date: 2026-05-12 15:24:59
 Total Frames Analysed: 271
 Total Events Detected: 0
 

@@ -16,6 +16,8 @@ import point_functions as points
 import batch_processor as batch
 import player_detection as player
 import player_tracking as tracker
+from events.detection_event import DetectionEvent
+from events.session_stats import DetectionSessionStats
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 def main():
@@ -410,6 +412,12 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     paused_state = {'paused': False, 'exit': False}
 
     player_tracker = tracker.PlayerTracker()
+    
+    # Store overall session statistics
+    session_stats = DetectionSessionStats()
+
+    # Save video FPS
+    session_stats.fps = fps
 
     frame_threshold = fps // 10
 
@@ -478,6 +486,12 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         
         # Track total frames in pass 1
         total_frame_count += 1
+
+        # Update live session statistics
+        session_stats.total_frames = total_frame_count
+
+        # Calculate current video duration
+        session_stats.video_duration = total_frame_count / fps
         
         # Show frame to user
         general.display_frame(display_frame, paused_state, 1000, window_title="Searching for a ruck or lineout. Press 'P' to pause or 'Q' to quit")
@@ -698,6 +712,43 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                         'overlay_end': detection_frame_index + overlay_duration_frames,
                         'annotated_frame': ruck_frame.copy()
                     })
+
+                    # Create structured detection event
+                    event = DetectionEvent(
+
+                        # Detection type
+                        event_type="ruck",
+
+                        # Highest confidence ruck box
+                        confidence=float(max(ruck_confidences)),
+
+                        # Frame number where detection occurred
+                        frame_number=detection_frame_index,
+
+                        # Timestamp in seconds
+                        timestamp=detection_timestamp,
+
+                        # Number of offside players
+                        offside_count=len(offside_player_boxes),
+
+                        # Store tracked player information
+                        tracked_players=players,
+
+                        # Store team counts
+                        team_counts=counts
+                    )
+
+                    # Add event to session statistics
+                    session_stats.add_event(event)
+
+                    # DEBUG: print detection event
+                    print("\n=== DETECTION EVENT ===")
+                    print(event)
+
+                    # DEBUG: print updated session stats
+                    print("\n=== SESSION STATS ===")
+                    print(session_stats)
+                    print()
                     
                     # Display annotated ruck frame
                     general.display_frame(ruck_frame, paused_state, fps, window_title="Displaying ruck offside detections. Press 'P' to continue playing")
@@ -919,6 +970,43 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     'overlay_end': detection_frame_index + overlay_duration_frames,
                     'annotated_frame': lineout_frame.copy()
                 })
+
+                # Create structured detection event
+                event = DetectionEvent(
+
+                    # Detection type
+                    event_type="lineout",
+
+                    # Highest confidence lineout box
+                    confidence=float(max(lineout_confidences)),
+
+                    # Frame number where detection occurred
+                    frame_number=detection_frame_index,
+
+                    # Timestamp in seconds
+                    timestamp=detection_timestamp,
+
+                    # Number of offside players
+                    offside_count=len(offside_player_boxes),
+
+                    # Store tracked player information
+                    tracked_players=players,
+
+                    # Store team counts
+                    team_counts=counts
+                )
+
+                # Add event to session statistics
+                session_stats.add_event(event)
+
+                # DEBUG: print detection event
+                print("\n=== DETECTION EVENT ===")
+                print(event)
+
+                # DEBUG: print updated session stats
+                print("\n=== SESSION STATS ===")
+                print(session_stats)
+                print()
                 
                 # Display annotated lineout frame
                 general.display_frame(lineout_frame, paused_state, fps, window_title="Displaying lineout offside detections. Press 'P' to continue playing")
