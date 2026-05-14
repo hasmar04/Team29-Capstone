@@ -16,6 +16,8 @@ import point_functions as points
 import batch_processor as batch
 import player_detection as player
 import player_tracking as tracker
+from events.detection_event import DetectionEvent
+from events.session_stats import DetectionSessionStats
 from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 def main():
@@ -410,6 +412,12 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
     paused_state = {'paused': False, 'exit': False}
 
     player_tracker = tracker.PlayerTracker()
+    
+    # Store overall session statistics
+    session_stats = DetectionSessionStats()
+
+    # Save video FPS
+    session_stats.fps = fps
 
     frame_threshold = fps // 10
 
@@ -478,6 +486,12 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         
         # Track total frames in pass 1
         total_frame_count += 1
+
+        # Update live session statistics
+        session_stats.total_frames = total_frame_count
+
+        # Calculate current video duration
+        session_stats.video_duration = total_frame_count / fps
         
         # Show frame to user
         general.display_frame(display_frame, paused_state, 1000, window_title="Searching for a ruck or lineout. Press 'P' to pause or 'Q' to quit")
@@ -657,16 +671,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                                 2
                             )
 
-                    for key in final_counts:
-                        final_counts[key] += counts[key]
-
-                    print(
-                        f"Detected counts -> "
-                        f"Team 0: {counts['team_0']}, "
-                        f"Team 1: {counts['team_1']}, "
-                        f"Unknown: {counts['unknown_team']}, "
-                        f"Refs: {counts['refs']}"
-                    )
                     player_dict = player.build_player_coord_dict(players)
 
                     if ruck_box is not None:
@@ -698,6 +702,34 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                         'overlay_end': detection_frame_index + overlay_duration_frames,
                         'annotated_frame': ruck_frame.copy()
                     })
+
+                    # Create structured detection event
+                    event = DetectionEvent(
+
+                        # Detection type
+                        event_type="ruck",
+
+                        # Highest confidence ruck box
+                        confidence=float(max(ruck_confidences)),
+
+                        # Frame number where detection occurred
+                        frame_number=detection_frame_index,
+
+                        # Timestamp in seconds
+                        timestamp=detection_timestamp,
+
+                        # Number of offside players
+                        offside_count=len(offside_player_boxes),
+
+                        # Store tracked player information
+                        tracked_players=players,
+
+                        # Store team counts
+                        team_counts=counts
+                    )
+
+                    # Add event to session statistics
+                    session_stats.add_event(event)
                     
                     # Display annotated ruck frame
                     general.display_frame(ruck_frame, paused_state, fps, window_title="Displaying ruck offside detections. Press 'P' to continue playing")
@@ -820,13 +852,9 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
                 players = player_tracker.update(players)
-                for p in players:
-                    print(
-                        "ID:", p.get("track_id"),
-                        "team:", p.get("team"),
-                        "colour:", p.get("jersey_colour"),
-                        "box:", p.get("box")
-                    )
+               
+                counts = player.count_teams_and_refs(players)
+
                 lineout_frame = draw.draw_player_debug(lineout_frame, players)
                 for p in players:
                     x1, y1, x2, y2 = p["box"]
@@ -856,7 +884,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                         2
                     )
 
-                    # ---- JERSEY CROP BOX (GREEN) ----
+                    # Jersey crop box
                     crop_box = p.get("jersey_crop_box")
                     if crop_box is not None:
                         jx1, jy1, jx2, jy2 = crop_box
@@ -868,19 +896,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                             (0, 255, 0),
                             2
                         )
-                counts = player.count_teams_and_refs(players)
-
-                for key in final_counts:
-                    final_counts[key] += counts[key]
-
-                print(
-                    f"Detected counts -> "
-                    f"Team 0: {counts['team_0']}, "
-                    f"Team 1: {counts['team_1']}, "
-                    f"Unknown: {counts['unknown_team']}, "
-                    f"Refs: {counts['refs']}"
-)
-
                 player_dict = player.build_player_coord_dict(players)
                 # Detect players on resized frame
 
@@ -919,6 +934,34 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                     'overlay_end': detection_frame_index + overlay_duration_frames,
                     'annotated_frame': lineout_frame.copy()
                 })
+
+                # Create structured detection event
+                event = DetectionEvent(
+
+                    # Detection type
+                    event_type="lineout",
+
+                    # Highest confidence lineout box
+                    confidence=float(max(lineout_confidences)),
+
+                    # Frame number where detection occurred
+                    frame_number=detection_frame_index,
+
+                    # Timestamp in seconds
+                    timestamp=detection_timestamp,
+
+                    # Number of offside players
+                    offside_count=len(offside_player_boxes),
+
+                    # Store tracked player information
+                    tracked_players=players,
+
+                    # Store team counts
+                    team_counts=counts
+                )
+
+                # Add event to session statistics
+                session_stats.add_event(event)
                 
                 # Display annotated lineout frame
                 general.display_frame(lineout_frame, paused_state, fps, window_title="Displaying lineout offside detections. Press 'P' to continue playing")
@@ -957,18 +1000,8 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 players = player.assign_teams_by_colour(players)
                 players = player_tracker.update(players)
 
-                counts = player.count_teams_and_refs(players)
 
-                for key in final_counts:
-                    final_counts[key] += counts[key]
 
-                print(
-                    f"Detected counts -> "
-                    f"Team 0: {counts['team_0']}, "
-                    f"Team 1: {counts['team_1']}, "
-                    f"Unknown: {counts['unknown_team']}, "
-                    f"Refs: {counts['refs']}"
-                )
 
                 player_dict = player.build_player_coord_dict(players)
                 
@@ -1141,75 +1174,103 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         print(f"  Frame rate: {fps} fps\n")
     
     # Generate and save detection log
-    if detection_log:
+    if session_stats.events:
+
         print(f"\nGenerating detection log...")
-        with open(output_log_path, 'w') as log_file:
-            log_file.write("="*80 + "\n")
-            log_file.write("RUGBY OFFSIDE DETECTION - ANALYSIS LOG\n")
-            log_file.write("="*80 + "\n\n")
-            
-            log_file.write(f"Video: {video_name}\n")
-            log_file.write(f"Total Frames Analysed: {total_frame_count}\n")
-            log_file.write(f"Video Duration: {int(total_frame_count/fps//60)}:{int((total_frame_count/fps)%60):02d}\n")
-            log_file.write(f"Frame Rate: {fps} fps\n\n")
-            
-            log_file.write("="*80 + "\n")
-            log_file.write("DETECTION SUMMARY\n")
-            log_file.write("="*80 + "\n\n")
-            
-            ruck_count = sum(1 for d in detection_log if d['type'] == 'RUCK')
-            lineout_count = sum(1 for d in detection_log if d['type'] == 'LINEOUT')
-            total_offside = sum(d['offside_count'] for d in detection_log)
-            
-            log_file.write(f"Total Detections: {len(detection_log)}\n")
-            log_file.write(f"  - Rucks: {ruck_count}\n")
-            log_file.write(f"  - Lineouts: {lineout_count}\n")
-            log_file.write(f"Total Offside Players Detected: {total_offside}\n\n")
-            
-            if detection_log:
-                avg_confidence = sum(d['confidence'] for d in detection_log) / len(detection_log)
-                log_file.write(f"Average Detection Confidence: {avg_confidence:.2%}\n\n")
-            
-            log_file.write("="*80 + "\n")
-            log_file.write("DETAILED DETECTION LOG\n")
-            log_file.write("="*80 + "\n\n")
-            
-            for i, detection in enumerate(detection_log, 1):
-                timestamp = detection['timestamp']
-                minutes = int(timestamp // 60)
-                seconds = int(timestamp % 60)
-                
-                log_file.write(f"Detection #{i}: {detection['type']}\n")
-                log_file.write(f"  Time: {minutes}:{seconds:02d}\n")
-                log_file.write(f"  Frame: {detection['frame']}\n")
-                log_file.write(f"  Confidence: {detection['confidence']:.2%}\n")
-                log_file.write(f"  Offside Players: {detection['offside_count']}\n")
-                log_file.write("\n")
-            
-            log_file.write("="*80 + "\n")
-            log_file.write("END OF LOG\n")
-            log_file.write("="*80 + "\n")
-        
+
+        write_detection_report(
+            output_log_path=output_log_path,
+            video_name=video_name,
+            session_stats=session_stats
+        )
+
         print(f"✓ Detection log saved: {output_log_path}")
         print(f"\n{'='*80}\n")
-        
-        # Print summary to console
+
         print("SUMMARY:")
         print("\nPLAYER DETECTION SUMMARY:")
-        print(f"  Team 0 total detections: {final_counts['team_0']}")
-        print(f"  Team 1 total detections: {final_counts['team_1']}")
-        print(f"  Unknown team detections: {final_counts['unknown_team']}")
-        print(f"  Ref detections: {final_counts['refs']}")
-        print(f"  Rucks detected: {ruck_count}")
-        print(f"  Lineouts detected: {lineout_count}")
-        print(f"  Total offside incidents: {total_offside}")
+        print(f"  Rucks detected: {session_stats.ruck_count}")
+        print(f"  Lineouts detected: {session_stats.lineout_count}")
+        print(f"  Total offside incidents: {session_stats.total_offside_players}")
         print(f"  Output video: {output_video_path}")
         print(f"  Log file: {output_log_path}")
         print(f"\n{'='*80}\n")
+
     else:
         print("\nNo ruck or lineout detections found in video.")
-    
-    cv2.destroyAllWindows()
+        
+        cv2.destroyAllWindows()
+
+def write_detection_report(output_log_path, video_name, session_stats):
+    """
+    Writes the analysis report using the structured DetectionSessionStats
+    and DetectionEvent objects instead of the old detection_log dictionary list.
+    """
+
+    with open(output_log_path, 'w') as log_file:
+        log_file.write("=" * 80 + "\n")
+        log_file.write("RUGBY OFFSIDE DETECTION - ANALYSIS LOG\n")
+        log_file.write("=" * 80 + "\n\n")
+
+        log_file.write(f"Video: {video_name}\n")
+        log_file.write(f"Total Frames Analysed: {session_stats.total_frames}\n")
+
+        minutes = int(session_stats.video_duration // 60)
+        seconds = int(session_stats.video_duration % 60)
+
+        log_file.write(f"Video Duration: {minutes}:{seconds:02d}\n")
+        log_file.write(f"Frame Rate: {session_stats.fps} fps\n\n")
+
+        log_file.write("=" * 80 + "\n")
+        log_file.write("DETECTION SUMMARY\n")
+        log_file.write("=" * 80 + "\n\n")
+
+        log_file.write(f"Total Detections: {session_stats.total_detections}\n")
+        log_file.write(f"  - Rucks: {session_stats.ruck_count}\n")
+        log_file.write(f"  - Lineouts: {session_stats.lineout_count}\n")
+        log_file.write(f"Total Offside Players Detected: {session_stats.total_offside_players}\n\n")
+        log_file.write(f"Average Detection Confidence: {session_stats.average_confidence:.2%}\n\n")
+
+        log_file.write("=" * 80 + "\n")
+        log_file.write("DETAILED DETECTION LOG\n")
+        log_file.write("=" * 80 + "\n\n")
+
+        for i, event in enumerate(session_stats.events, 1):
+            timestamp = event.timestamp
+            minutes = int(timestamp // 60)
+            seconds = int(timestamp % 60)
+
+            log_file.write(f"Detection #{i}: {event.event_type.upper()}\n")
+            log_file.write(f"  Time: {minutes}:{seconds:02d}\n")
+            log_file.write(f"  Frame: {event.frame_number}\n")
+            log_file.write(f"  Confidence: {event.confidence:.2%}\n")
+            log_file.write(f"  Offside Players: {event.offside_count}\n")
+
+            log_file.write("\n")
+            log_file.write("  Team Summary:\n")
+
+            counts = event.team_counts or {}
+
+            log_file.write(f"    Team 0: {counts.get('team_0', 0)}\n")
+            log_file.write(f"    Team 1: {counts.get('team_1', 0)}\n")
+            log_file.write(f"    Unknown: {counts.get('unknown_team', 0)}\n")
+            log_file.write(f"    Referees: {counts.get('refs', 0)}\n")
+
+            log_file.write("\n")
+            log_file.write("  Tracked Players:\n")
+
+            for tracked_player in event.tracked_players:
+                track_id = tracked_player.get("track_id")
+                team = tracked_player.get("team")
+                box = tracked_player.get("box")
+
+                log_file.write(f"    ID {track_id} -> Team {team}, Box: {box}\n")
+
+            log_file.write("\n")
+
+        log_file.write("=" * 80 + "\n")
+        log_file.write("END OF LOG\n")
+        log_file.write("=" * 80 + "\n")
 
 
 def build_offside_player_dict(frame, player_model, player_tracker=None):

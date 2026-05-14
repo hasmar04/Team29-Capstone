@@ -3,7 +3,7 @@ RUGBY OFFSIDE DETECTION ANALYSIS REPORT
 ================================================================================
 
 Video File: lineout2.mp4
-Processing Date: 2025-10-01 19:43:06
+Processing Date: 2026-05-12 15:26:52
 Total Frames Analysed: 258
 Total Events Detected: 1
 
@@ -16,8 +16,8 @@ Event #1
   Type: LINEOUT
   Frame Number: 19
   Timestamp: 0.63s
-  Detection Confidence: 13.61%
-  Lineout Box Confidence: 13.61%
+  Detection Confidence: 13.58%
+  Lineout Box Confidence: 13.58%
   Offside Players Detected: 0
 
 --------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ SUMMARY STATISTICS:
 Total Ruck Events: 0
 Total Lineout Events: 1
 Total Offside Players Across All Events: 0
-Average Lineout Detection Confidence: 13.61%
+Average Lineout Detection Confidence: 13.58%
 
 ================================================================================
 End of Report

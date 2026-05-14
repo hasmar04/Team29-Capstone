@@ -116,7 +116,7 @@ class TestFieldFunctions(unittest.TestCase):
     def test_remove_anomalous_lines_by_angle(self):
         # Test removal of lines with anomalous angles
         lines = [[10,10,90,10],[10,10,10,90],[10,10,90,90]]
-        filtered = field_functions.remove_anomalous_lines_by_angle(lines, threshold=1)
+        filtered = field_functions.remove_anomalous_lines_by_angle(lines)
         self.assertIsInstance(filtered, list)
 
     def test_approximate_field_outline(self):
