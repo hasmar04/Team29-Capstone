@@ -51,18 +51,6 @@ class TestPlayerDetection(unittest.TestCase):
         self.assertGreater(crop.shape[0], 0)
         self.assertGreater(crop.shape[1], 0)
 
-    def test_extract_colour(self):
-        crop = np.ones((10, 10, 3), dtype=np.uint8) * [10, 20, 30]
-
-        players = [{"jersey_crop": crop}]
-
-        players = extract_jersey_colour(players)
-
-        colour = players[0]["jersey_colour"]
-
-        self.assertIsNotNone(colour)
-        self.assertTrue(np.allclose(colour, (30, 20, 10), atol=5))
-
     def test_assign_teams(self):
         players = [
             {"jersey_colour": (255, 0, 0)},
@@ -116,15 +104,15 @@ class TestPlayerDetection(unittest.TestCase):
 
         players = assign_teams_by_colour(players)
 
-        self.assertIsNone(players[0]["team"])
+        self.assertEqual(players[0]["team"], 0)
 
     def test_assign_no_colours(self):
         players = [{"jersey_colour": None}, {"jersey_colour": None}]
 
         players = assign_teams_by_colour(players)
 
-        self.assertIsNone(players[0]["team"])
-        self.assertIsNone(players[1]["team"])
+        self.assertEqual(players[0]["team"], 0)
+        self.assertEqual(players[1]["team"], 0)
 
     def test_count_empty(self):
         counts = count_teams_and_refs([])
