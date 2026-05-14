@@ -82,52 +82,77 @@ def get_jersey_crop(frame, players):
 
 def extract_jersey_colour(players):
     """
-    Extract jersey colour with adaptive crop shifting if colour is unreliable.
+    Extract jersey colour using multi-band consensus voting.
+    Also stores alternate band colours so team assignment can retry if a player is an outlier.
     """
 
-    def get_colour_from_crop(crop):
+    def dominant_colour_from_crop(crop):
         if crop is None or crop.size == 0:
             return None, 0
 
         crop = crop.astype(np.uint8)
-
         hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
 
-        # Remove grass
+        h = hsv[:, :, 0]
+        s = hsv[:, :, 1]
+        v = hsv[:, :, 2]
+
         green_mask = (h > 35) & (h < 85) & (s > 60)
-        valid_mask = ~green_mask
+        low_sat_mask = s < 40
+        dark_mask = v < 40
 
-        pixels = crop[valid_mask].reshape(-1, 3)
+        valid_mask = ~(green_mask | low_sat_mask | dark_mask)
+        pixels = crop[valid_mask]
 
-        if len(pixels) == 0:
-            pixels = crop.reshape(-1, 3)
-
-        if len(pixels) == 0:
+        if len(pixels) < 20:
             return None, 0
 
-        hsv_pixels = cv2.cvtColor(
-            pixels.reshape(-1, 1, 3).astype(np.uint8),
-            cv2.COLOR_BGR2HSV
-        ).reshape(-1, 3)
+        pixels_float = np.float32(pixels)
+        k = min(3, len(pixels))
 
-        sat = hsv_pixels[:, 1]
+        criteria = (
+            cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
+            20,
+            1.0
+        )
 
-        # Confidence = how many high-sat pixels we have
-        high_sat_pixels = pixels[sat > 60]
-        confidence = len(high_sat_pixels)
+        _, labels, centers = cv2.kmeans(
+            pixels_float,
+            k,
+            None,
+            criteria,
+            10,
+            cv2.KMEANS_RANDOM_CENTERS
+        )
 
-        if len(high_sat_pixels) > 10:
-            pixels = high_sat_pixels
+        labels = labels.flatten()
+        counts = np.bincount(labels)
+        dominant_index = np.argmax(counts)
 
-        median_colour = np.median(pixels, axis=0)
-        b, g, r = median_colour
+        b, g, r = centers[dominant_index]
+        confidence = counts[dominant_index]
 
-        return (int(r), int(g), int(b)), confidence
+        return (int(r), int(g), int(b)), int(confidence)
 
+    def colours_similar(c1, c2, threshold=45):
+        if c1 is None or c2 is None:
+            return False
+
+        r1, g1, b1 = c1
+        r2, g2, b2 = c2
+
+        distance = np.sqrt(
+            (r1 - r2) ** 2 +
+            (g1 - g2) ** 2 +
+            (b1 - b2) ** 2
+        )
+
+        return distance < threshold
 
     for player in players:
         crop = player.get("jersey_crop")
+
+        player["jersey_colour_candidates"] = []
 
         if crop is None or crop.size == 0:
             player["jersey_colour"] = None
@@ -135,75 +160,132 @@ def extract_jersey_colour(players):
 
         h, w = crop.shape[:2]
 
-        candidates = []
+        bands = []
+        num_bands = 5
+        band_height = max(1, h // num_bands)
 
-        # Center
-        candidates.append(crop[int(h*0.2):int(h*0.6), int(w*0.2):int(w*0.8)])
+        for i in range(num_bands):
+            y1 = i * band_height
+            y2 = h if i == num_bands - 1 else (i + 1) * band_height
+            bands.append(crop[y1:y2, :])
 
-        # Slightly left
-        candidates.append(crop[int(h*0.2):int(h*0.6), int(w*0.1):int(w*0.6)])
+        band_results = []
 
-        # Slightly right
-        candidates.append(crop[int(h*0.2):int(h*0.6), int(w*0.4):int(w*0.9)])
-
-        # Higher (avoid shorts)
-        candidates.append(crop[int(h*0.1):int(h*0.5), int(w*0.2):int(w*0.8)])
-
-        best_colour = None
-        best_conf = -1
-
-        for c in candidates:
-            colour, conf = get_colour_from_crop(c)
+        for i, band in enumerate(bands):
+            colour, confidence = dominant_colour_from_crop(band)
 
             if colour is None:
                 continue
 
-            if conf > best_conf:
-                best_conf = conf
-                best_colour = colour
+            if i == 0:
+                weight = 1.5
+            elif i == 1:
+                weight = 1.4
+            elif i == 2:
+                weight = 1.2
+            elif i == 3:
+                weight = 0.8
+            else:
+                weight = 0.5
 
-        player["jersey_colour"] = best_colour
+            band_results.append({
+                "band": i,
+                "colour": colour,
+                "confidence": confidence * weight
+            })
+
+        player["jersey_colour_candidates"] = band_results
+
+        if not band_results:
+            player["jersey_colour"] = None
+            continue
+
+        groups = []
+
+        for result in band_results:
+            placed = False
+
+            for group in groups:
+                if colours_similar(result["colour"], group["representative"]):
+                    group["members"].append(result)
+                    group["total_confidence"] += result["confidence"]
+                    placed = True
+                    break
+
+            if not placed:
+                groups.append({
+                    "representative": result["colour"],
+                    "members": [result],
+                    "total_confidence": result["confidence"]
+                })
+
+        best_group = max(groups, key=lambda g: g["total_confidence"])
+        player["jersey_colour"] = best_group["representative"]
 
     return players
+
 def build_player_data(frame, player_result):
     filtered_boxes = filter_player_boxes(player_result)
     players = get_player_bottom_centre(filtered_boxes)
     players = get_jersey_crop(frame, players)
     players = extract_jersey_colour(players)
 
-    # ✅ DEBUG (FIXED)
-    for p in players:
-        colour = p.get("jersey_colour")
-
-        if colour is not None:
-            bgr = np.uint8([[colour[::-1]]])
-            hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)[0][0]
-
-            print(
-                "ID:", p.get("track_id"),
-                "RGB:", colour,
-                "HSV:", hsv,
-                "team:", p.get("team")
-            )
-
     return players
 
 
 def assign_teams_by_colour(players):
+    """
+    Assign players to exactly two teams, then sanity-check outliers against
+    all other players. If a player's colour does not match its assigned team,
+    try alternate band colours before finalising.
+    """
+
+    def colour_distance(c1, c2):
+        if c1 is None or c2 is None:
+            return float("inf")
+
+        r1, g1, b1 = c1
+        r2, g2, b2 = c2
+
+        return float(np.sqrt(
+            (r1 - r2) ** 2 +
+            (g1 - g2) ** 2 +
+            (b1 - b2) ** 2
+        ))
+
+    def average_team_colour(team_players):
+        colours = [
+            p.get("jersey_colour")
+            for p in team_players
+            if p.get("jersey_colour") is not None
+        ]
+
+        if not colours:
+            return None
+
+        return tuple(np.mean(np.array(colours), axis=0).astype(int))
+
+    valid_indices = []
     colours = []
-    player_indices = []
 
     for i, p in enumerate(players):
-        colour = p.get("jersey_colour")
-        if colour is None:
+        class_name = str(p.get("class_name", "")).lower()
+
+        if class_name in ["ref", "referee", "official"]:
+            p["team"] = None
             continue
 
-        colours.append(colour)
-        player_indices.append(i)
+        colour = p.get("jersey_colour")
+
+        if colour is not None:
+            valid_indices.append(i)
+            colours.append(colour)
 
     if len(colours) < 2:
         for p in players:
-            p["team"] = None
+            class_name = str(p.get("class_name", "")).lower()
+            if class_name not in ["ref", "referee", "official"]:
+                p["team"] = 0
         return players
 
     rgb_colours = np.array(colours, dtype=np.uint8)
@@ -235,12 +317,80 @@ def assign_teams_by_colour(players):
     kmeans = KMeans(n_clusters=2, random_state=0, n_init=10)
     labels = kmeans.fit_predict(features)
 
-    for player_index, label in zip(player_indices, labels):
+    for player_index, label in zip(valid_indices, labels):
         players[player_index]["team"] = int(label)
 
+    # Force uncoloured non-ref players into a temporary team.
     for p in players:
-        if p.get("jersey_colour") is None:
-            p["team"] = None
+        class_name = str(p.get("class_name", "")).lower()
+        if class_name not in ["ref", "referee", "official"] and p.get("team") not in [0, 1]:
+            p["team"] = 0
+
+    OUTLIER_THRESHOLD = 65
+
+    for player in players:
+        class_name = str(player.get("class_name", "")).lower()
+
+        if class_name in ["ref", "referee", "official"]:
+            continue
+
+        current_team = player.get("team")
+
+        if current_team not in [0, 1]:
+            continue
+
+        other_team = 1 - current_team
+
+        same_team_players = [
+            p for p in players
+            if p is not player and p.get("team") == current_team
+        ]
+
+        opposite_team_players = [
+            p for p in players
+            if p.get("team") == other_team
+        ]
+
+        same_team_colour = average_team_colour(same_team_players)
+        opposite_team_colour = average_team_colour(opposite_team_players)
+
+        current_colour = player.get("jersey_colour")
+
+        same_distance = colour_distance(current_colour, same_team_colour)
+        opposite_distance = colour_distance(current_colour, opposite_team_colour)
+
+        # If it already fits its team, keep it.
+        if same_distance <= OUTLIER_THRESHOLD:
+            continue
+
+        # If it fits the other team better, swap it.
+        if opposite_distance < same_distance:
+            player["team"] = other_team
+            continue
+
+        # Otherwise, try alternate band colours from the crop.
+        best_candidate = current_colour
+        best_team = current_team
+        best_distance = same_distance
+
+        for candidate in player.get("jersey_colour_candidates", []):
+            candidate_colour = candidate.get("colour")
+
+            candidate_same_distance = colour_distance(candidate_colour, same_team_colour)
+            candidate_opposite_distance = colour_distance(candidate_colour, opposite_team_colour)
+
+            if candidate_same_distance < best_distance:
+                best_candidate = candidate_colour
+                best_team = current_team
+                best_distance = candidate_same_distance
+
+            if candidate_opposite_distance < best_distance:
+                best_candidate = candidate_colour
+                best_team = other_team
+                best_distance = candidate_opposite_distance
+
+        player["jersey_colour"] = best_candidate
+        player["team"] = best_team
 
     return players
 

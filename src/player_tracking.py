@@ -27,12 +27,8 @@ class PlayerTracker:
         return interArea / float(boxAArea + boxBArea - interArea)
 
     def update(self, players):
-        print("[TRACKER] update called with", len(players), "players")
-
         if not players:
             return []
-
-        print("[TRACKER] building detections...")
 
         boxes = []
         confidences = []
@@ -54,15 +50,8 @@ class PlayerTracker:
             class_id=np.zeros(len(boxes), dtype=int)
         )
 
-        print("[TRACKER] calling ByteTrack...")
-
         tracks = self.tracker.update_with_detections(detections)
-
-        print("[TRACKER] ByteTrack returned")
-
         tracker_ids = tracks.tracker_id
-
-        print("[TRACKER] tracker_ids:", tracker_ids)
 
         tracked_players = []
 
@@ -83,21 +72,14 @@ class PlayerTracker:
                 continue
 
             p = best_player.copy()
-
             p["track_id"] = int(track_id)
 
-            print(f"[TRACKER] matched track_id {track_id} with IoU {best_iou:.3f}")
-
             new_team = p.get("team")
-
-            print(f"[TRACKER] track_id {track_id} colour: {p.get('jersey_colour')}")
 
             if track_id in self.track_teams:
 
                 # Reuse persistent team assignment
                 p["team"] = self.track_teams[track_id]
-
-                print(f"[TRACKER] reused team {p['team']} for track_id {track_id}")
 
             else:
 
@@ -106,17 +88,9 @@ class PlayerTracker:
                     self.track_teams[track_id] = new_team
                     p["team"] = new_team
 
-                    print(f"[TRACKER] assigned NEW team {new_team} to track_id {track_id}")
-
                 else:
                     p["team"] = None
 
-                    print(f"[TRACKER] no team assigned for track_id {track_id}")
-
             tracked_players.append(p)
-
-        print("[TRACKER] history size:", len(self.track_teams))
-
-        print(f"[TRACKER] returning {len(tracked_players)} tracked players")
 
         return tracked_players

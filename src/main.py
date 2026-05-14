@@ -671,16 +671,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                                 2
                             )
 
-                    for key in final_counts:
-                        final_counts[key] += counts[key]
-
-                    print(
-                        f"Detected counts -> "
-                        f"Team 0: {counts['team_0']}, "
-                        f"Team 1: {counts['team_1']}, "
-                        f"Unknown: {counts['unknown_team']}, "
-                        f"Refs: {counts['refs']}"
-                    )
                     player_dict = player.build_player_coord_dict(players)
 
                     if ruck_box is not None:
@@ -740,15 +730,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
 
                     # Add event to session statistics
                     session_stats.add_event(event)
-
-                    # DEBUG: print detection event
-                    print("\n=== DETECTION EVENT ===")
-                    print(event)
-
-                    # DEBUG: print updated session stats
-                    print("\n=== SESSION STATS ===")
-                    print(session_stats)
-                    print()
                     
                     # Display annotated ruck frame
                     general.display_frame(ruck_frame, paused_state, fps, window_title="Displaying ruck offside detections. Press 'P' to continue playing")
@@ -871,13 +852,9 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 players = player.build_player_data(resized_frame, player_result)
                 players = player.assign_teams_by_colour(players)
                 players = player_tracker.update(players)
-                for p in players:
-                    print(
-                        "ID:", p.get("track_id"),
-                        "team:", p.get("team"),
-                        "colour:", p.get("jersey_colour"),
-                        "box:", p.get("box")
-                    )
+               
+                counts = player.count_teams_and_refs(players)
+
                 lineout_frame = draw.draw_player_debug(lineout_frame, players)
                 for p in players:
                     x1, y1, x2, y2 = p["box"]
@@ -907,7 +884,7 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                         2
                     )
 
-                    # ---- JERSEY CROP BOX (GREEN) ----
+                    # Jersey crop box
                     crop_box = p.get("jersey_crop_box")
                     if crop_box is not None:
                         jx1, jy1, jx2, jy2 = crop_box
@@ -919,19 +896,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                             (0, 255, 0),
                             2
                         )
-                counts = player.count_teams_and_refs(players)
-
-                for key in final_counts:
-                    final_counts[key] += counts[key]
-
-                print(
-                    f"Detected counts -> "
-                    f"Team 0: {counts['team_0']}, "
-                    f"Team 1: {counts['team_1']}, "
-                    f"Unknown: {counts['unknown_team']}, "
-                    f"Refs: {counts['refs']}"
-)
-
                 player_dict = player.build_player_coord_dict(players)
                 # Detect players on resized frame
 
@@ -998,15 +962,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
 
                 # Add event to session statistics
                 session_stats.add_event(event)
-
-                # DEBUG: print detection event
-                print("\n=== DETECTION EVENT ===")
-                print(event)
-
-                # DEBUG: print updated session stats
-                print("\n=== SESSION STATS ===")
-                print(session_stats)
-                print()
                 
                 # Display annotated lineout frame
                 general.display_frame(lineout_frame, paused_state, fps, window_title="Displaying lineout offside detections. Press 'P' to continue playing")
@@ -1045,18 +1000,8 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
                 players = player.assign_teams_by_colour(players)
                 players = player_tracker.update(players)
 
-                counts = player.count_teams_and_refs(players)
 
-                for key in final_counts:
-                    final_counts[key] += counts[key]
 
-                print(
-                    f"Detected counts -> "
-                    f"Team 0: {counts['team_0']}, "
-                    f"Team 1: {counts['team_1']}, "
-                    f"Unknown: {counts['unknown_team']}, "
-                    f"Refs: {counts['refs']}"
-                )
 
                 player_dict = player.build_player_coord_dict(players)
                 
@@ -1284,10 +1229,6 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         # Print summary to console
         print("SUMMARY:")
         print("\nPLAYER DETECTION SUMMARY:")
-        print(f"  Team 0 total detections: {final_counts['team_0']}")
-        print(f"  Team 1 total detections: {final_counts['team_1']}")
-        print(f"  Unknown team detections: {final_counts['unknown_team']}")
-        print(f"  Ref detections: {final_counts['refs']}")
         print(f"  Rucks detected: {ruck_count}")
         print(f"  Lineouts detected: {lineout_count}")
         print(f"  Total offside incidents: {total_offside}")
