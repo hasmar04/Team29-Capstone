@@ -67,6 +67,7 @@ def detect_rugby_field(image):
 
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    print(f"[FIELD] contours found: {len(contours)}")
 
     # Draw the largest contour (assumed to be the field)
     if contours:
@@ -80,7 +81,7 @@ def detect_rugby_field(image):
         # Clip the convex hull points to the image boundaries
         return np.clip(hull, [0, 0], [width - 1, height - 1])
 
-def extract_straight_lines(contours, field_outline, exclusion_box=None, threshold=0.8):
+def extract_straight_lines(contours, field_outline, exclusion_box=None, threshold=0.35):
     """
     Extracts straight line segments from contours that are mostly inside the field outline.
 
@@ -98,7 +99,13 @@ def extract_straight_lines(contours, field_outline, exclusion_box=None, threshol
     straight_lines = []
 
     for cnt in contours:
-        # Check if the contour is inside the field outline
+        # Reject tiny noisy contours early.
+        contour_area = cv2.contourArea(cnt)
+
+        if contour_area < 40:
+            continue
+
+        """# Check if the contour is inside the field outline
         inside_count = 0
         for point in cnt:
             x, y = map(int, point[0])  # Extract the x, y coordinates
@@ -106,10 +113,27 @@ def extract_straight_lines(contours, field_outline, exclusion_box=None, threshol
             # Check if the point is inside the field outline
             if cv2.pointPolygonTest(field_outline, (x, y), False) >= 0:
                 inside_count += 1
+        inside_ratio = inside_count / len(cnt)
+
+        print(
+            "[FIELD] contour area:",
+            round(contour_area, 1),
+            "inside ratio:",
+            round(inside_ratio, 2),
+            "points:",
+            len(cnt)
+        )
 
         # Skip this contour if less than the threshold of its points are inside the field outline
-        if inside_count / len(cnt) < threshold:
-            continue
+        if inside_ratio < threshold:
+            continue"""
+        
+        print(
+            "[FIELD] contour area:",
+            round(contour_area, 1),
+            "points:",
+            len(cnt)
+        )
 
         # Approximate the contour to simplify it
         epsilon = 0.01 * cv2.arcLength(cnt, True)
@@ -176,8 +200,18 @@ def fit_straight_lines_to_contours(straight_lines, min_length=5):
         # Calculate the length of the line
         line_length = np.sqrt((x_max - x_min) ** 2 + (y2 - y1) ** 2)
 
-        if line_length > min_length:
-            contour_lines.append((x_min, y1, x_max, y2))
+        # Reject tiny lines.
+        if line_length <= min_length:
+            continue
+
+        # Calculate line angle.
+        angle = abs(np.degrees(np.arctan2(y2 - y1, x_max - x_min)))
+
+        # Reject near-vertical junk lines.
+        if angle > 80:
+            continue
+
+        contour_lines.append((x_min, y1, x_max, y2))
 
     return contour_lines
 
@@ -261,6 +295,36 @@ def get_horizontal_boundaries(field_outline):
     right_boundary = points[labels != left_cluster_label]
 
     return np.array(left_boundary, dtype=np.int32), np.array(right_boundary, dtype=np.int32)
+
+def extend_line_to_image_bounds(line, image_shape):
+    """
+    Extends a line to the image boundaries.
+    """
+    x1, y1, x2, y2 = line
+
+    # Force NumPy scalars into Python floats.
+    x1 = float(np.asarray(x1).item())
+    y1 = float(np.asarray(y1).item())
+    x2 = float(np.asarray(x2).item())
+    y2 = float(np.asarray(y2).item())
+
+    height, width = image_shape[:2]
+
+    # Handle vertical lines.
+    if abs(x2 - x1) < 1e-6:
+        return [int(x1), 0, int(x1), height - 1]
+
+    slope = (y2 - y1) / (x2 - x1)
+    intercept = y1 - slope * x1
+
+    left_y = int(intercept)
+    print(type(slope))
+    print(type(intercept))
+    print(slope)
+    print(intercept)
+    right_y = int((slope * (width - 1)) + intercept)
+
+    return [0, left_y, width - 1, right_y]
 
 def fit_lines_to_field(contour_lines, field_outline):
     """
@@ -437,35 +501,53 @@ def extract_line_features(lines, angle_weight, length_weight, midpoint_weight):
         features.append([angle, midpoint[0], midpoint[1], length])
     return np.array(features)
 
-def remove_anomalous_lines_by_angle(lines, threshold=2):
+def remove_anomalous_lines_by_angle(lines, angle_tolerance=12):
     """
-    Identify anomalous lines based on their angle.
+    Keeps the dominant cluster of similarly-oriented lines.
 
-    Parameters:
-        lines (list): List of lines, where each line is [x1, y1, x2, y2].
-        threshold (float): Number of standard deviations from the mean to consider a line anomalous.
-
-    Returns:
-        list: Indices of anomalous lines.
+    This is more robust than mean/stddev filtering because sports footage
+    often contains multiple competing angle groups from stands, signage,
+    shadows, and field markings.
     """
-    # Calculate angles for all lines
+
+    if not lines:
+        return []
+
     angles = []
-    for x1, y1, x2, y2 in lines:
-        angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))  # Convert to degrees
-        angle = angle % 180  # Normalise to [0, 180)
+
+    # Calculate angles.
+    for line in lines:
+        x1, y1, x2, y2 = line
+
+        angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
+        angle = angle % 180
+
         angles.append(angle)
 
-    # Calculate mean and standard deviation of angles
-    mean_angle = np.mean(angles)
-    std_angle = np.std(angles)
+    angles = np.array(angles)
 
-    # Identify anomalies (angles outside the threshold)
-    anomalies = [
-        i for i, angle in enumerate(angles)
-        if abs(angle - mean_angle) > threshold * std_angle
-    ]
+    best_count = 0
+    best_angle = None
 
-    return [line for i, line in enumerate(lines) if i not in anomalies]
+    # Find the dominant angle cluster.
+    for angle in angles:
+        count = np.sum(np.abs(angles - angle) < angle_tolerance)
+
+        if count > best_count:
+            best_count = count
+            best_angle = angle
+
+    filtered_lines = []
+
+    # Keep only lines near the dominant angle.
+    for line, angle in zip(lines, angles):
+        if abs(angle - best_angle) < angle_tolerance:
+            filtered_lines.append(line)
+
+    print(f"[FIELD] dominant angle cluster: {round(best_angle, 2)}")
+    print(f"[FIELD] kept lines: {len(filtered_lines)} / {len(lines)}")
+
+    return filtered_lines
 
 def approximate_field_outline(field_outline):
     """
@@ -601,6 +683,33 @@ def visualise_step(image, title, lines=None):
     plt.tight_layout()
     plt.show()
 
+def create_field_line_mask(image):
+    """
+    Creates a mask for likely white rugby field markings.
+
+    This is more reliable than simple grayscale thresholding because it looks
+    for low-saturation, high-value pixels inside the field image.
+    """
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    h, s, v = cv2.split(hsv)
+
+    # Field markings are usually bright and low saturation.
+    white_mask = cv2.inRange(
+        hsv,
+        np.array([0, 0, 135]),
+        np.array([180, 90, 255])
+    )
+
+    # Remove small noise.
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    white_mask = cv2.morphologyEx(white_mask, cv2.MORPH_OPEN, kernel, iterations=1)
+
+    # Connect broken painted line segments.
+    white_mask = cv2.morphologyEx(white_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+
+    return white_mask
+
 def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165, visualise_steps=False, is_path=True):
     """
     Extracts and processes the field lines from an image of a rugby field.
@@ -651,20 +760,13 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
         cv2.drawContours(field_outline_img, [np.array(field_outline, dtype=np.int32)], -1, (255, 0, 0), 2)
         visualise_step(cv2.cvtColor(field_outline_img, cv2.COLOR_BGR2RGB), "Field Outline Detection")
 
-    # Step 3: Image preprocessing (dilation to enhance lines)
-    kernel = np.ones((3, 3), np.uint8)
-    dilation = cv2.dilate(image_gray, kernel, iterations=2)
+    # Step 3: Create a field-line mask.
+    threshold = create_field_line_mask(image)
 
     if visualise_steps:
-        visualise_step(dilation, "Dilated Image")
+        visualise_step(threshold, "White Field Line Mask")
 
-    # Step 4: Thresholding to create binary image for contour detection
-    _, threshold = cv2.threshold(dilation, thresh, 255, cv2.THRESH_BINARY)
-
-    if visualise_steps:
-        visualise_step(threshold, "Thresholded Image")
-
-    # Step 5: Find contours in the thresholded image
+    # Step 4: Find contours in the thresholded image
     contours, _ = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     if visualise_steps:
@@ -672,8 +774,9 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
         cv2.drawContours(contour_img, contours, -1, (0, 255, 0), 1)
         visualise_step(cv2.cvtColor(contour_img, cv2.COLOR_BGR2RGB), "All Contours")
 
-    # Step 6: Extract straight line segments from contours (within field outline, excluding box if provided)
+    # Step 5: Extract straight line segments from contours (within field outline, excluding box if provided)
     straight_lines = extract_straight_lines(contours, field_outline, exclusion_box)
+    print(f"[FIELD] straight lines: {len(straight_lines)}")
     
     if visualise_steps:
         straight_contours_img = image.copy()
@@ -681,8 +784,9 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
         cv2.drawContours(straight_contours_img, line_contours, -1, (0, 255, 0), 2)
         visualise_step(cv2.cvtColor(straight_contours_img, cv2.COLOR_BGR2RGB), "Extracted Straight Contours")
 
-    # Step 7: Fit straight lines to the extracted segments
+    # Step 6: Fit straight lines to the extracted segments
     contour_lines = fit_straight_lines_to_contours(straight_lines, min_length=20)
+    print(f"[FIELD] fitted contour lines: {len(contour_lines)}")
     
     if visualise_steps:
         fitted_lines_img = image.copy()
@@ -700,7 +804,7 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
             cv2.line(deadball_line_img, (deadball_line[0], deadball_line[1]), (deadball_line[2], deadball_line[3]), (255, 0, 0), 2)
             visualise_step(cv2.cvtColor(deadball_line_img, cv2.COLOR_BGR2RGB), "Deadball Line")
             
-        # Step 7b: Filter out lines approximately perpendicular to the deadball line
+        # Step 6b: Filter out lines approximately perpendicular to the deadball line
         contour_lines = filter_by_deadball_line(contour_lines, deadball_line, tolerance=1)
 
         if visualise_steps:
@@ -709,8 +813,12 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
                 cv2.line(db_filtered_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
             visualise_step(cv2.cvtColor(db_filtered_img, cv2.COLOR_BGR2RGB), "Lines Filtered by Deadball Line")
 
-    # Step 8: Extend lines to field boundaries (top/bottom or left/right)
-    extended_lines = fit_lines_to_field(contour_lines, field_outline)
+    # Step 7: Extend lines to field boundaries (top/bottom or left/right)
+    extended_lines = [
+    extend_line_to_image_bounds(line, image.shape)
+    for line in contour_lines
+]
+    print(f"[FIELD] extended lines: {len(extended_lines)}")
     
     if visualise_steps:
         extended_lines_img = image.copy()
@@ -718,8 +826,8 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
             cv2.line(extended_lines_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         visualise_step(cv2.cvtColor(extended_lines_img, cv2.COLOR_BGR2RGB), "Extended Lines to Boundaries")
 
-    # Step 9: Remove initial anomalous lines based on angle outliers
-    removed_initial_anomalous_lines = remove_anomalous_lines_by_angle(extended_lines, threshold=1.5)
+    # Step 8: Remove initial anomalous lines based on angle outliers
+    removed_initial_anomalous_lines = remove_anomalous_lines_by_angle(extended_lines)
     
     if visualise_steps:
         initial_filtered_img = image.copy()
@@ -727,7 +835,7 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
             cv2.line(initial_filtered_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         visualise_step(cv2.cvtColor(initial_filtered_img, cv2.COLOR_BGR2RGB), "Initial Anomalous Lines Removed")
 
-    # Step 10: Average/merge lines whose midpoints are close together
+    # Step 9: Average/merge lines whose midpoints are close together
     average_lines = average_lines_by_midpoint(removed_initial_anomalous_lines, field_outline, 100)
     
     
@@ -737,13 +845,13 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
             cv2.line(averaged_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         visualise_step(cv2.cvtColor(averaged_img, cv2.COLOR_BGR2RGB), "Lines Averaged by Midpoint")
 
-    # Step 11: Final anomalous line removal (second pass after averaging)
-    final_lines = remove_anomalous_lines_by_angle(average_lines, threshold=1.5)
+    # Step 10: Final anomalous line removal (second pass after averaging)
+    final_lines = remove_anomalous_lines_by_angle(average_lines)
     
     if visualise_steps:
         final_img = image.copy()
         for x1, y1, x2, y2 in final_lines:
             cv2.line(final_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         visualise_step(cv2.cvtColor(final_img, cv2.COLOR_BGR2RGB), "Final Lines After Anomaly Removal")
-
+    print(f"[FIELD] final lines: {len(final_lines)}")
     return final_lines, field_outline

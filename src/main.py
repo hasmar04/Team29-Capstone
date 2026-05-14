@@ -1174,71 +1174,103 @@ def auto_mode(video_path, fps, ruck_model, lineout_model, ball_model, player_mod
         print(f"  Frame rate: {fps} fps\n")
     
     # Generate and save detection log
-    if detection_log:
+    if session_stats.events:
+
         print(f"\nGenerating detection log...")
-        with open(output_log_path, 'w') as log_file:
-            log_file.write("="*80 + "\n")
-            log_file.write("RUGBY OFFSIDE DETECTION - ANALYSIS LOG\n")
-            log_file.write("="*80 + "\n\n")
-            
-            log_file.write(f"Video: {video_name}\n")
-            log_file.write(f"Total Frames Analysed: {total_frame_count}\n")
-            log_file.write(f"Video Duration: {int(total_frame_count/fps//60)}:{int((total_frame_count/fps)%60):02d}\n")
-            log_file.write(f"Frame Rate: {fps} fps\n\n")
-            
-            log_file.write("="*80 + "\n")
-            log_file.write("DETECTION SUMMARY\n")
-            log_file.write("="*80 + "\n\n")
-            
-            ruck_count = sum(1 for d in detection_log if d['type'] == 'RUCK')
-            lineout_count = sum(1 for d in detection_log if d['type'] == 'LINEOUT')
-            total_offside = sum(d['offside_count'] for d in detection_log)
-            
-            log_file.write(f"Total Detections: {len(detection_log)}\n")
-            log_file.write(f"  - Rucks: {ruck_count}\n")
-            log_file.write(f"  - Lineouts: {lineout_count}\n")
-            log_file.write(f"Total Offside Players Detected: {total_offside}\n\n")
-            
-            if detection_log:
-                avg_confidence = sum(d['confidence'] for d in detection_log) / len(detection_log)
-                log_file.write(f"Average Detection Confidence: {avg_confidence:.2%}\n\n")
-            
-            log_file.write("="*80 + "\n")
-            log_file.write("DETAILED DETECTION LOG\n")
-            log_file.write("="*80 + "\n\n")
-            
-            for i, detection in enumerate(detection_log, 1):
-                timestamp = detection['timestamp']
-                minutes = int(timestamp // 60)
-                seconds = int(timestamp % 60)
-                
-                log_file.write(f"Detection #{i}: {detection['type']}\n")
-                log_file.write(f"  Time: {minutes}:{seconds:02d}\n")
-                log_file.write(f"  Frame: {detection['frame']}\n")
-                log_file.write(f"  Confidence: {detection['confidence']:.2%}\n")
-                log_file.write(f"  Offside Players: {detection['offside_count']}\n")
-                log_file.write("\n")
-            
-            log_file.write("="*80 + "\n")
-            log_file.write("END OF LOG\n")
-            log_file.write("="*80 + "\n")
-        
+
+        write_detection_report(
+            output_log_path=output_log_path,
+            video_name=video_name,
+            session_stats=session_stats
+        )
+
         print(f"✓ Detection log saved: {output_log_path}")
         print(f"\n{'='*80}\n")
-        
-        # Print summary to console
+
         print("SUMMARY:")
         print("\nPLAYER DETECTION SUMMARY:")
-        print(f"  Rucks detected: {ruck_count}")
-        print(f"  Lineouts detected: {lineout_count}")
-        print(f"  Total offside incidents: {total_offside}")
+        print(f"  Rucks detected: {session_stats.ruck_count}")
+        print(f"  Lineouts detected: {session_stats.lineout_count}")
+        print(f"  Total offside incidents: {session_stats.total_offside_players}")
         print(f"  Output video: {output_video_path}")
         print(f"  Log file: {output_log_path}")
         print(f"\n{'='*80}\n")
+
     else:
         print("\nNo ruck or lineout detections found in video.")
-    
-    cv2.destroyAllWindows()
+        
+        cv2.destroyAllWindows()
+
+def write_detection_report(output_log_path, video_name, session_stats):
+    """
+    Writes the analysis report using the structured DetectionSessionStats
+    and DetectionEvent objects instead of the old detection_log dictionary list.
+    """
+
+    with open(output_log_path, 'w') as log_file:
+        log_file.write("=" * 80 + "\n")
+        log_file.write("RUGBY OFFSIDE DETECTION - ANALYSIS LOG\n")
+        log_file.write("=" * 80 + "\n\n")
+
+        log_file.write(f"Video: {video_name}\n")
+        log_file.write(f"Total Frames Analysed: {session_stats.total_frames}\n")
+
+        minutes = int(session_stats.video_duration // 60)
+        seconds = int(session_stats.video_duration % 60)
+
+        log_file.write(f"Video Duration: {minutes}:{seconds:02d}\n")
+        log_file.write(f"Frame Rate: {session_stats.fps} fps\n\n")
+
+        log_file.write("=" * 80 + "\n")
+        log_file.write("DETECTION SUMMARY\n")
+        log_file.write("=" * 80 + "\n\n")
+
+        log_file.write(f"Total Detections: {session_stats.total_detections}\n")
+        log_file.write(f"  - Rucks: {session_stats.ruck_count}\n")
+        log_file.write(f"  - Lineouts: {session_stats.lineout_count}\n")
+        log_file.write(f"Total Offside Players Detected: {session_stats.total_offside_players}\n\n")
+        log_file.write(f"Average Detection Confidence: {session_stats.average_confidence:.2%}\n\n")
+
+        log_file.write("=" * 80 + "\n")
+        log_file.write("DETAILED DETECTION LOG\n")
+        log_file.write("=" * 80 + "\n\n")
+
+        for i, event in enumerate(session_stats.events, 1):
+            timestamp = event.timestamp
+            minutes = int(timestamp // 60)
+            seconds = int(timestamp % 60)
+
+            log_file.write(f"Detection #{i}: {event.event_type.upper()}\n")
+            log_file.write(f"  Time: {minutes}:{seconds:02d}\n")
+            log_file.write(f"  Frame: {event.frame_number}\n")
+            log_file.write(f"  Confidence: {event.confidence:.2%}\n")
+            log_file.write(f"  Offside Players: {event.offside_count}\n")
+
+            log_file.write("\n")
+            log_file.write("  Team Summary:\n")
+
+            counts = event.team_counts or {}
+
+            log_file.write(f"    Team 0: {counts.get('team_0', 0)}\n")
+            log_file.write(f"    Team 1: {counts.get('team_1', 0)}\n")
+            log_file.write(f"    Unknown: {counts.get('unknown_team', 0)}\n")
+            log_file.write(f"    Referees: {counts.get('refs', 0)}\n")
+
+            log_file.write("\n")
+            log_file.write("  Tracked Players:\n")
+
+            for tracked_player in event.tracked_players:
+                track_id = tracked_player.get("track_id")
+                team = tracked_player.get("team")
+                box = tracked_player.get("box")
+
+                log_file.write(f"    ID {track_id} -> Team {team}, Box: {box}\n")
+
+            log_file.write("\n")
+
+        log_file.write("=" * 80 + "\n")
+        log_file.write("END OF LOG\n")
+        log_file.write("=" * 80 + "\n")
 
 
 def build_offside_player_dict(frame, player_model, player_tracker=None):
