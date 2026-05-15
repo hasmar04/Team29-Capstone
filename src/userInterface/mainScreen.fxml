@@ -10,7 +10,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="userInterface.controllers.mainController">
    <children>
       <Rectangle arcHeight="5.0" arcWidth="5.0" height="29.0" opacity="0.48" stroke="BLACK" strokeType="INSIDE" width="600.0" />
       <Text fill="WHITE" layoutX="119.0" layoutY="18.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Queensland Reds - Rugby Offside Detection System">
@@ -41,7 +41,7 @@
          </font>
       </Text>
        <!-- Full Stats Button-->
-      <Button layoutX="11.0" layoutY="372.0" mnemonicParsing="false" style="-fx-background-color: #7A000A;" text="View Full Stats" textFill="WHITE">
+      <Button layoutX="11.0" layoutY="372.0" mnemonicParsing="false" style="-fx-background-color: #7A000A;" text="View Full Stats" textFill="WHITE" onAction="#switchToStats">
          <font>
             <Font name="Futura Md BT Bold" size="12.0" />
          </font></Button>
