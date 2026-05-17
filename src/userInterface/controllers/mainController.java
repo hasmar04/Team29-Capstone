@@ -1,12 +1,11 @@
 package userInterface.controllers;
 
-public class mainController extends pageSwitchingController {
+import javafx.fxml.FXML;
 
+public class mainController {
+
+    @FXML
     public void switchToStats() {
-        try {
-            MainApplication.setRoot("statsScreen");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SceneManager.switchScene("statsScreen");
     }
 }

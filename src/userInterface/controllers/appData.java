@@ -1,6 +1,5 @@
 package userInterface.controllers;
 
 public class AppData {
-    public static String currentVideoName = "lineout";
-    public static String reportPath = "batch_output/lineout_analysis_report.txt";
+    public static String reportPath = System.getProperty("user.dir") + "/batch_output/lineout_analysis_report.txt";
 }
