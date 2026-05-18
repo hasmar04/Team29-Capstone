@@ -217,4 +217,5 @@ ruck_annotated_output/
 #VS Code settings
 .vscode/
 
-inference/lineouts/whole match/All Blacks v England 2024 Auckland _ FULL GAME _ FINAL MOMENTS MAYHEM! 🤯.mp4
+*.mp4
+*_log.txt
