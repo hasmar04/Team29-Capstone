@@ -217,5 +217,10 @@ ruck_annotated_output/
 #VS Code settings
 .vscode/
 
+#Batch Mode Output files
+batch_output/
+
+#Extra filetypes to exclude
 *.mp4
 *_log.txt
+*_report.txt
