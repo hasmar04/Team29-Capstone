@@ -4,6 +4,64 @@
 
 An automated computer vision system for detecting and analysing offside events in rugby matches, specifically designed for the Queensland Reds at QUT.
 
+## Quick Start
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/hasmar04/Team29-Capstone.git
+cd Team29-Capstone
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Ensure YOLO models are in the `models/` directory
+
+### Running Batch Processing
+
+```bash
+cd src
+python main.py
+```
+
+When prompted:
+
+1. Select mode: `batch`
+2. Choose your videos directory
+3. Select output directory (or use default)
+4. Wait for processing to complete
+
+See [BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md) for detailed instructions.
+
+### Example Programmatic Usage
+
+```python
+import batch_processor as batch
+import yolo_functions as YOLO
+
+# Load models
+ruck_model = YOLO.load_model('./models/ruck.pt')
+lineout_model = YOLO.load_model('./models/lineout.pt')
+ball_model = YOLO.load_model('./models/ball.pt')
+player_model = YOLO.load_model('./models/yolo11n.pt')
+
+# Process videos
+batch.process_video_batch(
+    input_path='./my_videos',
+    output_dir='./results',
+    ruck_model=ruck_model,
+    lineout_model=lineout_model,
+    ball_model=ball_model,
+    player_model=player_model
+)
+```
+
 ### Processing Modes
 
 #### 1. Batch Processing
@@ -69,64 +127,6 @@ CPU vs GPU:
 Input Video -> YOLO Inference -> Detection Logic -> Field Analysis -> 
 Player Tracking -> Offside Calculation -> Frame Annotation -> 
 Video Compilation -> Report Generation -> Output Files
-```
-
-## Quick Start
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/hasmar04/Team29-Capstone.git
-cd Team29-Capstone
-```
-
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Ensure YOLO models are in the `models/` directory
-
-### Running Batch Processing
-
-```bash
-cd src
-python main.py
-```
-
-When prompted:
-
-1. Select mode: `batch`
-2. Choose your videos directory
-3. Select output directory (or use default)
-4. Wait for processing to complete
-
-See [BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md) for detailed instructions.
-
-### Example Programmatic Usage
-
-```python
-import batch_processor as batch
-import yolo_functions as YOLO
-
-# Load models
-ruck_model = YOLO.load_model('./models/ruck.pt')
-lineout_model = YOLO.load_model('./models/lineout.pt')
-ball_model = YOLO.load_model('./models/ball.pt')
-player_model = YOLO.load_model('./models/yolo11n.pt')
-
-# Process videos
-batch.process_video_batch(
-    input_path='./my_videos',
-    output_dir='./results',
-    ruck_model=ruck_model,
-    lineout_model=lineout_model,
-    ball_model=ball_model,
-    player_model=player_model
-)
 ```
 
 ## Output Examples
