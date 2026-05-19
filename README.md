@@ -23,21 +23,9 @@ pip install -r requirements.txt
 
 3. Ensure YOLO models are in the `models/` directory
 
-### Running Batch Processing
+### Running the GUI
 
-```bash
-cd src
-python main.py
-```
-
-When prompted:
-
-1. Select mode: `batch`
-2. Choose your videos directory
-3. Select output directory (or use default)
-4. Wait for processing to complete
-
-See [BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md) for detailed instructions.
+See [GUI_README.md](<GUI_README.md>)
 
 ### Example Programmatic Usage
 
@@ -175,7 +163,6 @@ Team29-Capstone/
 │   ├── ball.pt                    # Ball tracking model
 │   └── yolo11n.pt                 # Player detection model
 ├── inference/                      # Test videos and images
-├── Handover/                       # Project documentation
 ├── BATCH_PROCESSING_GUIDE.md      # NEW: Detailed batch processing guide
 └── example_batch_usage.py         # NEW: Example script
 
