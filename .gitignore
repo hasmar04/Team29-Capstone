@@ -209,7 +209,7 @@ __marimo__/
 
 # Test/output artifacts
 inference/mixed/
-ruck_annotated_output/
+*_output/
 
 # Allow pytest.ini
 !pytest.ini
@@ -217,5 +217,7 @@ ruck_annotated_output/
 #VS Code settings
 .vscode/
 
+#Extra filetypes to exclude
 *.mp4
 *_log.txt
+*_report.txt
