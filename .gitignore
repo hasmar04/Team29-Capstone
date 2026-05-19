@@ -210,15 +210,13 @@ __marimo__/
 # Test/output artifacts
 inference/mixed/
 ruck_annotated_output/
+batch_output/
 
 # Allow pytest.ini
 !pytest.ini
 
 #VS Code settings
 .vscode/
-
-#Batch Mode Output files
-batch_output/
 
 #Extra filetypes to exclude
 *.mp4
