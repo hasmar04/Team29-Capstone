@@ -162,10 +162,7 @@ Team29-Capstone/
 │   ├── lineout.pt                 # Lineout detection model
 │   ├── ball.pt                    # Ball tracking model
 │   └── yolo11n.pt                 # Player detection model
-├── inference/                      # Test videos and images
-├── BATCH_PROCESSING_GUIDE.md      # NEW: Detailed batch processing guide
-└── example_batch_usage.py         # NEW: Example script
-
+└── inference/                      # Test videos and images
 ```
 
 ## Models
