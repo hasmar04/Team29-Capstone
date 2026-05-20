@@ -1,5 +1,5 @@
 # Developed front-end user interface design concept to
-# improve usability, aesthetic and provide extra features
+improve usability, aesthetic and provide extra features
 
 <!-- PURPOSE
 
@@ -23,4 +23,6 @@ colour legend, button linking to statistics page.
 
 ## MainController.java - Connects dynamic data and button functionality on main screen.
 
-## statsController.java - 
+## statsController.java - Connects dynamic data from lineout report, displaying across text and automatically generating pie chart and line chart.
+
+### All of the code has been developed including the FXML lineout. This can be displayed through scenebuilder or see the 2025-2026/Design handover section for wireframes, Figma link, user testing and future integration.

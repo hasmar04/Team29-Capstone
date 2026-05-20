@@ -1,0 +1,12 @@
+# Future Development:
+
+# The current system includes fully developed JavaFX FXML screens connected to controllers handling navigation, dynamic data display, and reporting/statistics views (see UI-READ-ME in src/userInterface). The UI has been implemented as a working standalone prototype demonstrating the intended user interface structure and interaction flow.
+
+Full integration with the Python-based backend (YOLO detection system) was not completed within the project timeframe due to differing technology stacks and development delays. As the result of this being a desirable additional feature and already meeting standard GUI requirements, this was added as a separate component.
+
+## Integration for future work:
+Some options we were discussing for future integration  include:
+    1. Rebuild the UI controllers in Python (Tkinter)
+    Recreate the existing interface using Python for easier integration with the current Tkinter Python GUI.
+    
+    2. Keep the JavaFX UI and connect with back-end python using API to to call detection functions and retrieve results.
