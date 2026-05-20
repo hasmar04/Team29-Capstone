@@ -47,21 +47,21 @@ class TestUIFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ui_functions.check_is_video("test.txt")
 
-    @patch('src.builtins.input', return_value='ball')
+    @patch('builtins.input', return_value='ball')
     def test_get_model_type_ball(self, mock_input):
         """
         Test get_model_type returns 'ball' when user inputs 'ball'.
         """
         self.assertEqual(ui_functions.get_model_type(), 'ball')
 
-    @patch('src.builtins.input', return_value='all')
+    @patch('builtins.input', return_value='all')
     def test_get_model_type_all(self, mock_input):
         """
         Test get_model_type returns 'rugby' when user inputs 'all'.
         """
         self.assertEqual(ui_functions.get_model_type(), 'rugby')
 
-    @patch('src.builtins.input', return_value='invalid')
+    @patch('builtins.input', return_value='invalid')
     def test_get_model_type_invalid(self, mock_input):
         """
         Test get_model_type raises SystemExit for invalid input.
@@ -69,21 +69,21 @@ class TestUIFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ui_functions.get_model_type()
 
-    @patch('src.builtins.input', return_value='yes')
+    @patch('builtins.input', return_value='yes')
     def test_get_boolean_true(self, mock_input):
         """
         Test get_boolean returns True for 'yes' input.
         """
         self.assertTrue(ui_functions.get_boolean("Prompt: "))
 
-    @patch('src.builtins.input', return_value='no')
+    @patch('builtins.input', return_value='no')
     def test_get_boolean_false(self, mock_input):
         """
         Test get_boolean returns False for 'no' input.
         """
         self.assertFalse(ui_functions.get_boolean("Prompt: "))
 
-    @patch('src.builtins.input', return_value='maybe')
+    @patch('builtins.input', return_value='maybe')
     def test_get_boolean_invalid(self, mock_input):
         """
         Test get_boolean raises SystemExit for invalid input.
