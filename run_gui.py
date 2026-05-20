@@ -19,7 +19,7 @@ sys.path.insert(0, src_dir)
 
 # Import and run the GUI
 try:
-    from gui_app import run_gui
+    from src.gui_app import run_gui
     run_gui()
 except ImportError as e:
     print(f"Error importing GUI application: {e}")
