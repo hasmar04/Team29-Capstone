@@ -37,6 +37,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "Linux" ]]; then
             mv dist/app dist/app-linux
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            ls dist/
             mv dist/app dist/app-macos
           fi
         shell: bash
