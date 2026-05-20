@@ -28,7 +28,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build executable
-        run: pyinstaller run_gui.py --distpath dist --onefile
+        run: pyinstaller run_gui.py --distpath dist --onefile  --name app
 
       - name: Rename executable
         run: |
