@@ -169,20 +169,24 @@ Team29-Capstone/
 
 The system uses custom-trained YOLO models:
 
-- **ruck.pt**: Detects ruck formations and ball position
-- **lineout.pt**: Detects lineout formations, hooker position
 - **ball.pt**: Specialised ball tracking
+- **lineout.pt**: Detects lineout formations, hooker position
+- **player-id**:
+- **ruck.pt**: Detects ruck formations and ball position
+- **rugby.pt**: 
+- **yolo11n-pose.pt**: 
+- **yolo11n-seg**: 
 - **yolo11n.pt**: General player detection (YOLO11 nano)
+- **yolo11s-pose.pt**: 
+- **yolov8n-pose.pt**: 
 
-Training notebooks available in `colab_notebooks/`
+Training instructions and functions can be found in [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)
 
 ## Documentation
 
-- **[BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md)**: Complete batch processing documentation
-- **Manual Testing Plan.pdf**: Testing procedures
-- **Handover/Docs/Troubleshooting Guide.pdf**: Common issues and solutions
-- **Handover/Docs/Training and Exporting Datasets Guide.pdf**: Model training guide
-- **System Architecture.txt**: System design overview
+- **docs/Manual Testing Plan.pdf**: Testing procedures
+- **docs/Troubleshooting Guide.pdf**: Common issues and solutions
+- **docs/System Architecture.md**: System design overview
 
 ## Key Technical Details
 
@@ -232,16 +236,11 @@ python -m pytest src/unit_testing/
 
 ### Training New Models
 
-See notebooks in `colab_notebooks/`:
-
-- `ball_dataset.ipynb`
-- `lineout_dataset.ipynb`
-- `ruck_dataset.ipynb`
-- `training_template.ipynb`
+See [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)F
 
 ## Contributors
 
-**Team 29** - QUT Capstone Project 2025
+**Team 29** - QUT Capstone Project 2025-26
 
 - Project Partner: Queensland Reds
 - University: Queensland University of Technology
@@ -249,13 +248,5 @@ See notebooks in `colab_notebooks/`:
 ## License
 
 This project is developed as part of a university capstone project for the Queensland Reds.
-
-## Support
-
-For issues or questions:
-
-1. Check [BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md)
-2. Review `Handover/Docs/Troubleshooting Guide.pdf`
-3. Contact the development team
 
 ---
