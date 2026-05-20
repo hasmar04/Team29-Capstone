@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import unittest
 from unittest.mock import MagicMock, patch
 import numpy as np
-import ruck_functions
+from src import ruck_functions
 
 class DummyBoxes:
     """

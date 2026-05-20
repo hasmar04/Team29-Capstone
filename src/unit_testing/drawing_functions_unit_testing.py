@@ -28,7 +28,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import unittest
 import numpy as np
-import drawing_functions
+from src import drawing_functions
 
 class TestDrawingFunctions(unittest.TestCase):
     def setUp(self):

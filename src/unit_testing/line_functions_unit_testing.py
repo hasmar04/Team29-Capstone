@@ -20,7 +20,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import unittest
 import numpy as np
-import line_functions
+from src import line_functions
 
 class TestLineFunctions(unittest.TestCase):
     def test_get_slope_regular(self):

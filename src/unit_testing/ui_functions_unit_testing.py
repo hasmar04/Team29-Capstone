@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
-import ui_functions
+from src import ui_functions
 
 class TestUIFunctions(unittest.TestCase):
     def test_check_is_video_image(self):

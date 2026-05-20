@@ -41,7 +41,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_header_bar_creation(self):
         """HeaderBar should display the correct title text."""
-        from gui_app import HeaderBar
+        from src.gui_app import HeaderBar
         header = HeaderBar(self.root)
         self.assertEqual(
             header.title_label.cget("text"),
@@ -51,7 +51,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_card_frame_creation(self):
         """CardFrame should be created with a white background and rounded corners."""
-        from gui_app import CardFrame, CARD_BG
+        from src.gui_app import CardFrame, CARD_BG
         card = CardFrame(self.root)
         self.assertEqual(card.cget("fg_color"), CARD_BG)
         self.assertEqual(card.cget("corner_radius"), 15)
@@ -59,7 +59,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_section_title_text(self):
         """SectionTitle should display the given text in maroon colour."""
-        from gui_app import SectionTitle, MAROON
+        from src.gui_app import SectionTitle, MAROON
         title = SectionTitle(self.root, "Test Section")
         self.assertEqual(title.cget("text"), "Test Section")
         self.assertEqual(title.cget("text_color"), MAROON)
@@ -67,7 +67,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_progress_card_initial_state(self):
         """ProgressCard should initialise with progress at 0 and 'Ready' status."""
-        from gui_app import ProgressCard
+        from src.gui_app import ProgressCard
         card = ProgressCard(self.root)
         self.assertAlmostEqual(card.progress_bar.get(), 0.0)
         self.assertEqual(card.status_label.cget("text"), "Ready to start processing")
@@ -75,7 +75,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_progress_card_set_progress(self):
         """set_progress should clamp value between 0-100 and scale to 0-1."""
-        from gui_app import ProgressCard
+        from src.gui_app import ProgressCard
         card = ProgressCard(self.root)
 
         card.set_progress(50)
@@ -96,7 +96,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_progress_card_set_status(self):
         """set_status should update the status label text."""
-        from gui_app import ProgressCard
+        from src.gui_app import ProgressCard
         card = ProgressCard(self.root)
 
         card.set_status("Processing...")
@@ -110,14 +110,14 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_model_status_card_initial_state(self):
         """ModelStatusCard should show 'Loading YOLO models...' on init."""
-        from gui_app import ModelStatusCard
+        from src.gui_app import ModelStatusCard
         card = ModelStatusCard(self.root)
         self.assertEqual(card.status_label.cget("text"), "Loading YOLO models...")
         card.destroy()
 
     def test_model_status_card_set_status(self):
         """set_status should update the model status text and colour."""
-        from gui_app import ModelStatusCard
+        from src.gui_app import ModelStatusCard
         card = ModelStatusCard(self.root)
 
         card.set_status("Models loaded", "#27ae60")
@@ -128,7 +128,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_mode_card_creation(self):
         """ModeCard should create radio buttons for manual, auto, and batch modes."""
-        from gui_app import ModeCard
+        from src.gui_app import ModeCard
         mode_var = ctk.StringVar(value="auto")
         card = ModeCard(self.root, mode_var)
         # The mode variable should retain its initial value
@@ -137,7 +137,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_file_card_creation(self):
         """FileCard should create with the provided string variables."""
-        from gui_app import FileCard
+        from src.gui_app import FileCard
         video_var = ctk.StringVar(value="")
         output_var = ctk.StringVar(value="")
         card = FileCard(self.root, video_var, output_var, lambda: None, lambda: None)
@@ -147,7 +147,7 @@ class TestWidgetClasses(unittest.TestCase):
 
     def test_reports_tree_card_columns(self):
         """ReportsTreeCard should have the correct treeview columns."""
-        from gui_app import ReportsTreeCard
+        from src.gui_app import ReportsTreeCard
         card = ReportsTreeCard(self.root, lambda e: None)
         expected_columns = ("Video", "Event Type", "Confidence", "Offsides")
         self.assertEqual(card.tree["columns"], expected_columns)
@@ -170,7 +170,7 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         """Helper to create a GUI instance with mocked model loading."""
         with patch('gui_app.RugbyOffsideGUI.load_models_async'):
             with patch('gui_app.RugbyOffsideGUI.monitor_progress'):
-                from gui_app import RugbyOffsideGUI
+                from src.gui_app import RugbyOffsideGUI
                 gui = RugbyOffsideGUI(self.root)
         return gui
 
@@ -355,7 +355,7 @@ class TestParseReportFile(unittest.TestCase):
     def _create_gui(self):
         with patch('gui_app.RugbyOffsideGUI.load_models_async'):
             with patch('gui_app.RugbyOffsideGUI.monitor_progress'):
-                from gui_app import RugbyOffsideGUI
+                from src.gui_app import RugbyOffsideGUI
                 gui = RugbyOffsideGUI(self.root)
         return gui
 
