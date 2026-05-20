@@ -33,5 +33,7 @@ jobs:
         pip install pytest opencv-python-headless
 
     - name: Run tests
+      env:
+        PYTHONPATH: .
       run: |
         xvfb-run pytest src/unit_testing/ -v
