@@ -53,6 +53,16 @@ BORDER_COLOUR = "#e0e0e0"
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and PyInstaller"""
+
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 class HeaderBar(ctk.CTkFrame):
     """Maroon header bar with title and subtitle."""
@@ -266,7 +276,7 @@ class RugbyOffsideGUI:
         # Paths
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
         self.project_root = os.path.dirname(self.script_dir)
-        self.models_dir = os.path.join(self.project_root, "models")
+        self.models_dir = resource_path("models")
 
         # Build UI
         self._build_ui()

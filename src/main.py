@@ -23,6 +23,18 @@ from src.constants import (
     LINEOUT_MODEL_CLASS_NUMBERS
 )
 
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and PyInstaller"""
+
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
 def main():
     """
     Main function to execute the offside detection program.
@@ -50,7 +62,7 @@ def main():
     # Get the parent directory (Team29-Capstone)
     project_root = os.path.dirname(script_dir)
     # Models directory path
-    models_dir = os.path.join(project_root, 'models')
+    models_dir = resource_path("models")
 
     print("=" * 80)
     print("QUEENSLAND REDS - RUGBY OFFSIDE DETECTION SYSTEM")
