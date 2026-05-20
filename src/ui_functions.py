@@ -26,7 +26,7 @@ import os, sys, cv2
 import numpy as np
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, askdirectory
-from constants import POINT_SELECTION_STRING
+from src.constants import POINT_SELECTION_STRING
 
 def select_file():
     """

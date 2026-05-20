@@ -17,7 +17,7 @@ Dependencies:
 - `general_functions`: Utility functions for bounding box operations.
 """
 
-import general_functions as general
+from src import general_functions as general
 
 
 def check_between_lines(player_points, left_line, right_line):

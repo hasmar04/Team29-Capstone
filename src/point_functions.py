@@ -21,7 +21,7 @@ Dependencies:
 import cv2
 import numpy as np
 
-from constants import FIELD_POINTS_DICT
+from src.constants import FIELD_POINTS_DICT
 
 def get_homography_matrix(detected_points, point_locations):
     """

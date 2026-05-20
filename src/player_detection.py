@@ -1,7 +1,7 @@
 from sklearn.cluster import KMeans
 import numpy as np
 from ultralytics import YOLO
-import offside_functions as offside
+from src import offside_functions as offside
 import cv2
 
 

@@ -16,10 +16,10 @@ Dependencies:
 
 import cv2
 import numpy as np
-import general_functions as general
-import drawing_functions as draw
-import ball_functions as ball
-from constants import LINEOUT_MODEL_CLASS_NUMBERS, BALL_MODEL_CLASS_NUMBERS
+from src import general_functions as general
+from src import drawing_functions as draw
+from src import ball_functions as ball
+from src.constants import LINEOUT_MODEL_CLASS_NUMBERS, BALL_MODEL_CLASS_NUMBERS
 
 def get_ball_release(lineout_results, ball_results, ruck_results, paused_state, fps, movement_threshold=50, cooldown_duration=30, tracker_fail_threshold=10):
     """

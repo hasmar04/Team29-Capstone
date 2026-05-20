@@ -38,8 +38,8 @@ import cv2
 import numpy as np
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
-import general_functions as general
-import line_functions as lf
+from src import general_functions as general
+from src import line_functions as lf
 
 def detect_rugby_field(image):
     """

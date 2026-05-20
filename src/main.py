@@ -3,22 +3,25 @@ from unittest import result
 import cv2
 import numpy as np
 import os
-import ui_functions as UI
-import yolo_functions as yolo_utils
-import field_functions as field
-import ruck_functions as ruck
-import lineout_functions as lineout
-import drawing_functions as draw
-import line_functions as line
-import general_functions as general
-import offside_functions as offside
-import point_functions as points
-import batch_processor as batch
-import player_detection as player
-import player_tracking as tracker
-from events.detection_event import DetectionEvent
-from events.session_stats import DetectionSessionStats
-from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
+from src import ui_functions as UI
+from src import yolo_functions as yolo_utils
+from src import field_functions as field
+from src import ruck_functions as ruck
+from src import lineout_functions as lineout
+from src import drawing_functions as draw
+from src import line_functions as line
+from src import general_functions as general
+from src import offside_functions as offside
+from src import point_functions as points
+from src import batch_processor as batch
+from src import player_detection as player
+from src import player_tracking as tracker
+from src.events.detection_event import DetectionEvent
+from src.events.session_stats import DetectionSessionStats
+from src.constants import (
+    RUCK_MODEL_CLASS_NUMBERS,
+    LINEOUT_MODEL_CLASS_NUMBERS
+)
 
 def main():
     """

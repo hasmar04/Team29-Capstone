@@ -26,19 +26,19 @@ import numpy as np
 import os
 from pathlib import Path
 from datetime import datetime
-import yolo_functions as YOLO
-import field_functions as field
-import ruck_functions as ruck
-import lineout_functions as lineout
-import drawing_functions as draw
-import line_functions as line
-import general_functions as general
-import offside_functions as offside
-import point_functions as points
-import player_detection as player
-import player_tracking as tracker
+from src import yolo_functions as YOLO
+from src import field_functions as field
+from src import ruck_functions as ruck
+from src import lineout_functions as lineout
+from src import drawing_functions as draw
+from src import line_functions as line
+from src import general_functions as general
+from src import offside_functions as offside
+from src import point_functions as points
+from src import player_detection as player
+from src import player_tracking as tracker
 from collections import deque
-from constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
+from src.constants import RUCK_MODEL_CLASS_NUMBERS, LINEOUT_MODEL_CLASS_NUMBERS
 
 
 def get_video_files(directory_path):
