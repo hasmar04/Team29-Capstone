@@ -161,7 +161,7 @@ Team29-Capstone/
 │   ├── ruck.pt                    # Ruck detection model
 │   ├── lineout.pt                 # Lineout detection model
 │   ├── ball.pt                    # Ball tracking model
-│   └── yolo11n.pt                 # Player detection model
+│   └── player-id.pt               # Player detection model
 └── inference/                      # Test videos and images
 ```
 
@@ -171,14 +171,10 @@ The system uses custom-trained YOLO models:
 
 - **ball.pt**: Specialised ball tracking
 - **lineout.pt**: Detects lineout formations, hooker position
-- **player-id**:
+- **player-id**: Detects players and refs
 - **ruck.pt**: Detects ruck formations and ball position
-- **rugby.pt**: 
-- **yolo11n-pose.pt**: 
-- **yolo11n-seg**: 
-- **yolo11n.pt**: General player detection (YOLO11 nano)
-- **yolo11s-pose.pt**: 
-- **yolov8n-pose.pt**: 
+
+
 
 Training instructions and functions can be found in [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)
 
