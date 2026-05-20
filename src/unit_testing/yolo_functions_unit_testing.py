@@ -26,7 +26,7 @@ import numpy as np
 from src import yolo_functions
 
 class TestYOLOFunctions(unittest.TestCase):
-    @patch('yolo_functions.YOLO')
+    @patch('src.yolo_functions.YOLO')
     def test_load_model_success(self, mock_yolo):
         """
         Test that load_model successfully loads and returns a YOLO model when no exception is raised.
@@ -35,7 +35,7 @@ class TestYOLOFunctions(unittest.TestCase):
         model = yolo_functions.load_model('some_path.pt')
         self.assertEqual(model, 'mock_model')
 
-    @patch('yolo_functions.YOLO', side_effect=Exception('fail'))
+    @patch('src.yolo_functions.YOLO', side_effect=Exception('fail'))
     @patch('sys.exit')
     def test_load_model_fail(self, mock_exit, mock_yolo):
         """
@@ -44,7 +44,7 @@ class TestYOLOFunctions(unittest.TestCase):
         yolo_functions.load_model('bad_path.pt')
         mock_exit.assert_called_once()
 
-    @patch('yolo_functions.YOLO')
+    @patch('src.yolo_functions.YOLO')
     def test_perform_inference_success(self, mock_yolo):
         """
         Test that perform_inference returns a generator yielding the expected results when inference succeeds.
@@ -54,7 +54,7 @@ class TestYOLOFunctions(unittest.TestCase):
         results = yolo_functions.perform_inference('file', mock_model, show_output=False, conf=0.5)
         self.assertEqual(list(results), ['result1', 'result2'])
 
-    @patch('yolo_functions.YOLO')
+    @patch('src.yolo_functions.YOLO')
     def test_perform_inference_fail(self, mock_yolo):
         """
         Test that perform_inference raises SystemError when the model's predict method raises an exception.

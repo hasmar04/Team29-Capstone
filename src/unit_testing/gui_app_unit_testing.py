@@ -257,7 +257,7 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         gui.event_log_text.configure(state="disabled")
         self.assertEqual(content, "")
 
-    @patch('gui_app.filedialog.askopenfilename', return_value="/fake/path/video.mp4")
+    @patch('src.gui_app.filedialog.askopenfilename', return_value="/fake/path/video.mp4")
     def test_select_video_single_mode(self, mock_dialog):
         """select_video in non-batch mode should set the video path via file dialog."""
         gui = self._create_gui()
@@ -265,7 +265,7 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         gui.select_video()
         self.assertEqual(gui.video_path.get(), "/fake/path/video.mp4")
 
-    @patch('gui_app.filedialog.askopenfilename', return_value="")
+    @patch('src.gui_app.filedialog.askopenfilename', return_value="")
     def test_select_video_cancelled(self, mock_dialog):
         """select_video should not update path if user cancels the dialog."""
         gui = self._create_gui()
@@ -274,7 +274,7 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         gui.select_video()
         self.assertEqual(gui.video_path.get(), "/existing/video.mp4")
 
-    @patch('gui_app.filedialog.askdirectory', return_value="/fake/batch/dir")
+    @patch('src.gui_app.filedialog.askdirectory', return_value="/fake/batch/dir")
     def test_select_video_batch_mode(self, mock_dialog):
         """select_video in batch mode should open a directory dialog."""
         gui = self._create_gui()
@@ -282,14 +282,14 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         gui.select_video()
         self.assertEqual(gui.video_path.get(), "/fake/batch/dir")
 
-    @patch('gui_app.filedialog.askdirectory', return_value="/fake/output")
+    @patch('src.gui_app.filedialog.askdirectory', return_value="/fake/output")
     def test_select_output(self, mock_dialog):
         """select_output should set the output directory path."""
         gui = self._create_gui()
         gui.select_output()
         self.assertEqual(gui.output_dir.get(), "/fake/output")
 
-    @patch('gui_app.filedialog.askdirectory', return_value="")
+    @patch('src.gui_app.filedialog.askdirectory', return_value="")
     def test_select_output_cancelled(self, mock_dialog):
         """select_output should not update path if user cancels the dialog."""
         gui = self._create_gui()
@@ -297,7 +297,7 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         gui.select_output()
         self.assertEqual(gui.output_dir.get(), "/existing/output")
 
-    @patch('gui_app.messagebox.showwarning')
+    @patch('src.gui_app.messagebox.showwarning')
     def test_start_processing_no_models(self, mock_warn):
         """start_processing should warn if models are not loaded yet."""
         gui = self._create_gui()
@@ -306,7 +306,7 @@ class TestRugbyOffsideGUI(unittest.TestCase):
         mock_warn.assert_called_once()
         self.assertIn("loading", mock_warn.call_args[0][1].lower())
 
-    @patch('gui_app.messagebox.showwarning')
+    @patch('src.gui_app.messagebox.showwarning')
     def test_start_processing_no_video(self, mock_warn):
         """start_processing should warn if no video file is selected."""
         gui = self._create_gui()
@@ -353,8 +353,8 @@ class TestParseReportFile(unittest.TestCase):
         cls.root.destroy()
 
     def _create_gui(self):
-        with patch('gui_app.RugbyOffsideGUI.load_models_async'):
-            with patch('gui_app.RugbyOffsideGUI.monitor_progress'):
+        with patch('src.gui_app.RugbyOffsideGUI.load_models_async'):
+            with patch('src.gui_app.RugbyOffsideGUI.monitor_progress'):
                 from src.gui_app import RugbyOffsideGUI
                 gui = RugbyOffsideGUI(self.root)
         return gui
@@ -514,8 +514,8 @@ class TestDisplayReportDetails(unittest.TestCase):
         cls.root.destroy()
 
     def _create_gui(self):
-        with patch('gui_app.RugbyOffsideGUI.load_models_async'):
-            with patch('gui_app.RugbyOffsideGUI.monitor_progress'):
+        with patch('src.gui_app.RugbyOffsideGUI.load_models_async'):
+            with patch('src.gui_app.RugbyOffsideGUI.monitor_progress'):
                 from gui_app import RugbyOffsideGUI
                 gui = RugbyOffsideGUI(self.root)
         return gui

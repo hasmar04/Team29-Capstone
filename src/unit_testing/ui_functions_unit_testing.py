@@ -91,7 +91,7 @@ class TestUIFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ui_functions.get_boolean("Prompt: ")
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_success(self, mock_cv2):
         """
         Test get_frame returns a valid frame when video can be opened and read.
@@ -106,7 +106,7 @@ class TestUIFunctions(unittest.TestCase):
         self.assertEqual(frame.shape, (100, 100, 3))
         mock_cap.release.assert_called_once()
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_not_opened(self, mock_cv2):
         """
         Test get_frame returns None if the video cannot be opened.
@@ -117,7 +117,7 @@ class TestUIFunctions(unittest.TestCase):
         frame = ui_functions.get_frame("dummy.mp4")
         self.assertIsNone(frame)
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_no_frames(self, mock_cv2):
         """
         Test get_frame returns None if the video has zero frames.
@@ -129,7 +129,7 @@ class TestUIFunctions(unittest.TestCase):
         frame = ui_functions.get_frame("dummy.mp4")
         self.assertIsNone(frame)
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_read_fail(self, mock_cv2):
         """
         Test get_frame returns None if reading the frame fails.

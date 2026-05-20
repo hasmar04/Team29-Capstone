@@ -79,7 +79,7 @@ class TestOffsideFunctions(unittest.TestCase):
         result = offside_functions.get_players_between_lines(player_dict, left_line, right_line)
         self.assertIsInstance(result, list)
 
-    @patch('offside_functions.general')
+    @patch('src.offside_functions.general')
     def test_filter_for_offside_detection(self, mock_general):
         """
         Test filter_for_offside_detection returns a dict after filtering.
@@ -90,7 +90,7 @@ class TestOffsideFunctions(unittest.TestCase):
         result = offside_functions.filter_for_offside_detection(player_dict, roi)
         self.assertIsInstance(result, dict)
 
-    @patch('offside_functions.general')
+    @patch('src.offside_functions.general')
     def test_filter_detections_off_the_field(self, mock_general):
         """
         Test filter_detections_off_the_field returns a dict after filtering.

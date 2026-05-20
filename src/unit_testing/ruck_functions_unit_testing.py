@@ -65,10 +65,10 @@ class TestRuckFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ruck_functions.get_ball_release(None, None, None, paused_state, fps)
 
-    @patch('ruck_functions.general')
-    @patch('ruck_functions.draw')
-    @patch('ruck_functions.ball')
-    @patch('ruck_functions.cv2')
+    @patch('src.ruck_functions.general')
+    @patch('src.ruck_functions.draw')
+    @patch('src.ruck_functions.ball')
+    @patch('src.ruck_functions.cv2')
     def test_get_ball_release_early_exit(self, mock_cv2, mock_ball, mock_draw, mock_general):
         """
         Test get_ball_release returns the correct tuple when paused_state['exit'] is True.

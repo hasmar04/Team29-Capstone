@@ -35,7 +35,7 @@ class TestPointFunctions(unittest.TestCase):
         self.lineout_centre = (50, 50)
         self.lines = [[10, 10, 90, 10], [10, 90, 90, 90]]
 
-    @patch('point_functions.FIELD_POINTS_DICT', {
+    @patch('src.point_functions.FIELD_POINTS_DICT', {
         'left_10m_line': {'bottom_15m': [0, 0], 'top_15m': [0, 100]},
         'right_10m_line': {'bottom_15m': [100, 0]},
         'right_22m_line': {'top_15m': [100, 100]}

@@ -56,7 +56,7 @@ class TestGeneralFunctions(unittest.TestCase):
         self.boxes = [[10, 10, 20, 40], [30, 10, 40, 40]]
         self.dummy_result = DummyResult(self.boxes)
 
-    @patch('general_functions.cv2')
+    @patch('src.general_functions.cv2')
     def test_load_and_resize_image_color(self, mock_cv2):
         # Test loading and resizing a color image
         mock_cv2.imread.return_value = np.ones((200, 200, 3), dtype=np.uint8) * 255
@@ -64,7 +64,7 @@ class TestGeneralFunctions(unittest.TestCase):
         img = general_functions.load_and_resize_image('dummy_path.jpg', width=50, height=50, gray=False)
         self.assertEqual(img.shape, (50, 50, 3))
 
-    @patch('general_functions.cv2')
+    @patch('src.general_functions.cv2')
     def test_load_and_resize_image_gray(self, mock_cv2):
         # Test loading and resizing a grayscale image
         mock_cv2.imread.return_value = np.ones((200, 200), dtype=np.uint8) * 255
@@ -72,14 +72,14 @@ class TestGeneralFunctions(unittest.TestCase):
         img = general_functions.load_and_resize_image('dummy_path.jpg', width=60, height=40, gray=True)
         self.assertEqual(img.shape, (40, 60))
 
-    @patch('general_functions.cv2')
+    @patch('src.general_functions.cv2')
     def test_load_and_resize_image_file_not_found(self, mock_cv2):
         # Test FileNotFoundError when image cannot be loaded
         mock_cv2.imread.return_value = None
         with self.assertRaises(FileNotFoundError):
             general_functions.load_and_resize_image('not_found.jpg')
 
-    @patch('general_functions.cv2')
+    @patch('src.general_functions.cv2')
     def test_get_video_fps(self, mock_cv2):
         # Test getting video FPS from a valid video file
         mock_cap = MagicMock()
@@ -90,7 +90,7 @@ class TestGeneralFunctions(unittest.TestCase):
         self.assertEqual(fps, 30)
         mock_cap.release.assert_called_once()
 
-    @patch('general_functions.cv2')
+    @patch('src.general_functions.cv2')
     def test_get_video_fps_file_not_found(self, mock_cv2):
         # Test FileNotFoundError when video file cannot be opened
         mock_cap = MagicMock()
