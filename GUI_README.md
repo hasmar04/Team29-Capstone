@@ -11,6 +11,8 @@
 
 ## Quick Start
 
+Python needs to be installed on your system. It can be downloaded from the [Python Website](https://www.python.org/downloads/)
+
 ### Windows Users
 1. Double-click `run_gui.bat` to launch the GUI
 2. Or run `python run_gui.py` from command prompt
