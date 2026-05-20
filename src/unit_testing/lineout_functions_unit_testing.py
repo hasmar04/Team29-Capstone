@@ -55,10 +55,10 @@ class TestLineoutFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             lineout_functions.get_ball_release(None, None, None, paused_state, fps)
 
-    @patch('lineout_functions.general')
-    @patch('lineout_functions.draw')
-    @patch('lineout_functions.ball')
-    @patch('lineout_functions.cv2')
+    @patch('src.lineout_functions.general')
+    @patch('src.lineout_functions.draw')
+    @patch('src.lineout_functions.ball')
+    @patch('src.lineout_functions.cv2')
     def test_get_ball_release_early_exit(self, mock_cv2, mock_ball, mock_draw, mock_general):
         """
         Test that get_ball_release returns the correct tuple when paused_state['exit'] is True.

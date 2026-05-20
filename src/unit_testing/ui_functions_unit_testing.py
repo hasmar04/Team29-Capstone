@@ -47,21 +47,21 @@ class TestUIFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ui_functions.check_is_video("test.txt")
 
-    @patch('builtins.input', return_value='ball')
+    @patch('src.builtins.input', return_value='ball')
     def test_get_model_type_ball(self, mock_input):
         """
         Test get_model_type returns 'ball' when user inputs 'ball'.
         """
         self.assertEqual(ui_functions.get_model_type(), 'ball')
 
-    @patch('builtins.input', return_value='all')
+    @patch('src.builtins.input', return_value='all')
     def test_get_model_type_all(self, mock_input):
         """
         Test get_model_type returns 'rugby' when user inputs 'all'.
         """
         self.assertEqual(ui_functions.get_model_type(), 'rugby')
 
-    @patch('builtins.input', return_value='invalid')
+    @patch('src.builtins.input', return_value='invalid')
     def test_get_model_type_invalid(self, mock_input):
         """
         Test get_model_type raises SystemExit for invalid input.
@@ -69,21 +69,21 @@ class TestUIFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ui_functions.get_model_type()
 
-    @patch('builtins.input', return_value='yes')
+    @patch('src.builtins.input', return_value='yes')
     def test_get_boolean_true(self, mock_input):
         """
         Test get_boolean returns True for 'yes' input.
         """
         self.assertTrue(ui_functions.get_boolean("Prompt: "))
 
-    @patch('builtins.input', return_value='no')
+    @patch('src.builtins.input', return_value='no')
     def test_get_boolean_false(self, mock_input):
         """
         Test get_boolean returns False for 'no' input.
         """
         self.assertFalse(ui_functions.get_boolean("Prompt: "))
 
-    @patch('builtins.input', return_value='maybe')
+    @patch('src.builtins.input', return_value='maybe')
     def test_get_boolean_invalid(self, mock_input):
         """
         Test get_boolean raises SystemExit for invalid input.
@@ -91,7 +91,7 @@ class TestUIFunctions(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ui_functions.get_boolean("Prompt: ")
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_success(self, mock_cv2):
         """
         Test get_frame returns a valid frame when video can be opened and read.
@@ -106,7 +106,7 @@ class TestUIFunctions(unittest.TestCase):
         self.assertEqual(frame.shape, (100, 100, 3))
         mock_cap.release.assert_called_once()
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_not_opened(self, mock_cv2):
         """
         Test get_frame returns None if the video cannot be opened.
@@ -117,7 +117,7 @@ class TestUIFunctions(unittest.TestCase):
         frame = ui_functions.get_frame("dummy.mp4")
         self.assertIsNone(frame)
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_no_frames(self, mock_cv2):
         """
         Test get_frame returns None if the video has zero frames.
@@ -129,7 +129,7 @@ class TestUIFunctions(unittest.TestCase):
         frame = ui_functions.get_frame("dummy.mp4")
         self.assertIsNone(frame)
 
-    @patch('ui_functions.cv2')
+    @patch('src.ui_functions.cv2')
     def test_get_frame_read_fail(self, mock_cv2):
         """
         Test get_frame returns None if reading the frame fails.

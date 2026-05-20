@@ -133,7 +133,7 @@ class TestFieldFunctions(unittest.TestCase):
         result = field_functions.get_deadball_line(outline, image, lineout_centre)
         self.assertTrue(result is None or (isinstance(result, list) and len(result) == 4))
 
-    @patch('field_functions.lf')
+    @patch('src.field_functions.lf')
     def test_filter_by_deadball_line(self, mock_lf):
         # Test filtering lines approximately perpendicular to the deadball line
         mock_lf.get_slope.return_value = 1
