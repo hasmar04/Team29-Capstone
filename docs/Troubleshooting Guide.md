@@ -126,11 +126,16 @@ e.g.: `pip uninstall ultralytics`
 
 Otherwise, if you’d just like to update your package, type: `pip install --upgrade <package-name>`
 
-# Q: Message "Models are still loading" is shown
-
 ## A: Wait for YOLO models to load completely
+Depending on the size of the model files and the speed of your system, loading the YOLO models can take anywhere from a few seconds to several minutes.
 
-## A: Check that model files exist in `models/` directory
+The application may appear unresponsive during this process, particularly on lower-end systems or during the first startup. Once all models are loaded successfully, processing will begin automatically.
+
+If the message remains for an extended period of time:
+- Ensure all required model files are present in the `\models` directory
+- Check that Python dependencies installed correctly
+- Verify your system has sufficient available RAM and GPU memory
+- Restart the application and try again
 
 # Q: Message "No video file selected" is shown
 
