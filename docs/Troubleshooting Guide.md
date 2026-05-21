@@ -126,6 +126,27 @@ e.g.: `pip uninstall ultralytics`
 
 Otherwise, if you’d just like to update your package, type: `pip install --upgrade <package-name>`
 
+# Q: Message "Models are still loading" is shown
+
+## A: Wait for YOLO models to load completely
+
+## A: Check that model files exist in `models/` directory
+
+# Q: Message "No video file selected" is shown
+
+## A: Ensure you've selected a valid video file
+
+## A: Check file format
+The program supports .mp4, .avi, .mov, .gif file types.
+
+# Q: Message "Processing failed" is shown
+
+## A: Check the processing log for detailed error messages
+This can be found in the application window. 
+
+## A: Ensure all dependencies are installed
+If you are running the code from the repository, run `pip install -r requirements.txt` in the terminal. 
+
 # Q: How do I run code commands in terminal?
 
 The project was run on a development platform called Visual Studio Code (VS Code). Some of the examples where terminal is shown, it is in VS Code however, most of the commands can be entered into Windows, Linux or Mac command line terminal.

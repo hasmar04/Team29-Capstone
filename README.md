@@ -6,7 +6,14 @@ An automated computer vision system for detecting and analysing offside events i
 
 ## Quick Start
 
-### Installation
+## End-user Installation
+
+1. Dowload the latest release zip from the GitHub repository for your operating system: [Team29-Capstone Releases](https://github.com/hasmar04/Team29-Capstone/releases)
+2. Extract the zip to a location on your local machine that is easy to access. 
+   - Note! Do not separate the files within the zip archive. Moving individual files will break the program. 
+3. Click on the 'app' file to start the program
+
+### Development Installation
 
 1. Clone the repository:
 
@@ -232,7 +239,7 @@ python -m pytest src/unit_testing/
 
 ### Training New Models
 
-See [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)F
+See [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)
 
 ## Contributors
 
