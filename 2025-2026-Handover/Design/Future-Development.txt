@@ -10,3 +10,129 @@ Some options we were discussing for future integration  include:
     Recreate the existing interface using Python for easier integration with the current Tkinter Python GUI.
     
     2. Keep the JavaFX UI and connect with back-end python using API to to call detection functions and retrieve results.
+
+## Integration for future work:
+Some options we were discussing for future integration include:
+
+1. Rebuild the UI controllers in Python (Tkinter)  
+Recreate the existing interface using Python for easier integration with the current Tkinter Python GUI.
+
+2. Keep the JavaFX UI and connect with back-end Python using an API to call detection functions and retrieve results.
+
+## Detection Pipeline Refactoring:
+The current implementation contains manual mode, automatic mode, batch processing, video output generation, logging, and detection orchestration primarily within `main.py`.
+
+Future work should refactor the system into smaller modular components to improve maintainability, readability, and scalability. Some possible improvements include:
+- Separating manual, auto, and batch modes into independent modules
+- Creating dedicated services for:
+  - Detection handling
+  - Tracking
+  - Video rendering
+  - Report generation
+  - Configuration management
+- Reducing duplicated processing logic between batch and automatic modes
+- Introducing a more scalable pipeline architecture for future feature additions
+
+This would make the system significantly easier to maintain and extend for future development.
+
+## Multi-Frame Player Tracking Improvements:
+The current system already incorporates ByteTrack-based player tracking to maintain player consistency between frames and improve jersey/team classification stability during detection sequences.
+
+Future development could improve the robustness of the tracking pipeline, particularly during:
+- Heavy player occlusion
+- Fast camera movement
+- Dense ruck or lineout formations
+- Broadcast camera cuts
+- Extreme perspective distortion
+
+Some possible improvements include:
+- Long-term player re-identification
+- Better recovery from ID switching
+- Temporal smoothing for offside decisions
+- Cross-camera player tracking between multiple video angles
+- Persistent team classification memory over longer sequences
+
+This would improve:
+- Offside detection consistency
+- Team colour stability
+- Reduced bounding-box flickering
+- More reliable event tracking throughout phases of play
+
+The tracking system could also be expanded to support:
+- Player movement analytics
+- Heatmaps
+- Tactical analysis
+- Phase reconstruction
+- Automated replay generation
+
+## Multi-Camera Confidence System:
+The current implementation processes each video independently. However, the provided multi-camera rugby datasets create an opportunity for a more advanced confidence system using multiple simultaneous camera angles.
+
+Future work could:
+- Analyse multiple camera feeds simultaneously
+- Compare field line consistency between camera angles
+- Use the clearest angle for field line extraction
+- Fuse player positioning information across views
+- Increase confidence when multiple perspectives agree on detections
+
+This could improve:
+- Field line accuracy
+- Homography estimation
+- Offside line consistency
+- Robustness against poor camera angles or occlusion
+
+It would also reduce reliance on a single broadcast perspective when making offside decisions.
+
+## Field Mapping and Homography Improvements:
+The current field-line system uses contour extraction, line fitting, and heuristic field-point estimation to approximate field geometry.
+
+Future development could investigate:
+- Automatic rugby field keypoint detection
+- Learned homography estimation models
+- Deep-learning-based field segmentation
+- Camera calibration systems
+- Persistent top-down field reconstruction
+
+This would improve:
+- Offside line accuracy
+- Perspective handling
+- Robustness across different stadiums and broadcast conditions
+- Overall field understanding consistency
+
+## Reporting and Match Analytics Expansion:
+The current reporting system provides:
+- Detection logs
+- Confidence summaries
+- Event counts
+- Offside player counts
+
+Future work could expand this into a more complete rugby analytics platform by including:
+- Interactive replay timelines
+- Confidence graphs
+- Team statistics
+- Player heatmaps
+- Match summaries
+- Tactical phase analysis
+- Exportable analytics dashboards
+
+## Performance and GPU Optimisation:
+The current system performs several computationally expensive operations sequentially, including:
+- YOLO inference
+- Field line extraction
+- Contour analysis
+- Homography estimation
+- Video rendering
+
+Future optimisation work could include:
+- GPU acceleration improvements
+- Parallel frame processing
+- Asynchronous inference pipelines
+- Model quantisation
+- TensorRT or OpenVINO deployment
+- Improved batching strategies
+
+This would improve:
+- Processing speed
+- Scalability
+- Real-time analysis capability
+- Deployment viability for live match environments
