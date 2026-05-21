@@ -552,7 +552,7 @@ class TestDisplayReportDetails(unittest.TestCase):
         self.assertIn("test.mp4", content)
         self.assertIn("Ruck", content)
         self.assertIn("95.0%", content)
-        self.assertIn("Total Ruck Events: 1", content)
+        self.assertIn("Rucks: 1", content)
         self.assertIn("Total Offside Players: 2", content)
 
     def test_display_report_details_no_events(self):
