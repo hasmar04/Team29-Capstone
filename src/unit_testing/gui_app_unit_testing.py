@@ -24,7 +24,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import unittest
 from unittest.mock import patch, MagicMock
 import tempfile
-import customtkinter as ctk
+import pytest
+
+ctk = pytest.importorskip("customtkinter")
 
 
 class TestWidgetClasses(unittest.TestCase):

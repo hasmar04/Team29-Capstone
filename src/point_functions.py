@@ -35,7 +35,6 @@ def get_homography_matrix(detected_points, point_locations):
         numpy.ndarray: Homography matrix mapping detected points to reference points.
     """
     reference_points = []
-    print(point_locations)
 
     for x, y in point_locations:
         reference_points.append(FIELD_POINTS_DICT[x][y])

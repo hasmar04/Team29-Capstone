@@ -1,8 +1,15 @@
+import os
+import sys
 from unittest import result
+
+# Allow direct execution with:
+# python C:/.../Team29-Capstone/src/main.py
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 import cv2
 import numpy as np
-import os
 from src import ui_functions as UI
 from src import yolo_functions as yolo_utils
 from src import field_functions as field
@@ -30,7 +37,7 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except AttributeError:
-        base_path = os.path.abspath(".")
+        base_path = PROJECT_ROOT
 
     return os.path.join(base_path, relative_path)
 
