@@ -553,7 +553,7 @@ class TestDisplayReportDetails(unittest.TestCase):
         self.assertIn("Ruck", content)
         self.assertIn("95.0%", content)
         self.assertIn("Rucks: 1", content)
-        self.assertIn("Total Offside Players: 2", content)
+        self.assertIn("Candidate offside players: 2", content)
 
     def test_display_report_details_no_events(self):
         """display_report_details should handle reports with no events."""
