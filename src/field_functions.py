@@ -41,6 +41,15 @@ import matplotlib.pyplot as plt
 from src import general_functions as general
 from src import line_functions as lf
 
+FIELD_DEBUG = False
+
+
+def _field_debug(message):
+    """Print field extraction diagnostics only when FIELD_DEBUG is enabled."""
+    if FIELD_DEBUG:
+        print(message)
+
+
 def detect_rugby_field(image):
     """
     Detects the rugby field in an image by identifying the largest green area. Processes the input image to isolate green regions (using HSV color space), 
@@ -67,7 +76,7 @@ def detect_rugby_field(image):
 
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print(f"[FIELD] contours found: {len(contours)}")
+    _field_debug(f"[FIELD] contours found: {len(contours)}")
 
     # Draw the largest contour (assumed to be the field)
     if contours:
@@ -128,11 +137,8 @@ def extract_straight_lines(contours, field_outline, exclusion_box=None, threshol
         if inside_ratio < threshold:
             continue"""
         
-        print(
-            "[FIELD] contour area:",
-            round(contour_area, 1),
-            "points:",
-            len(cnt)
+        _field_debug(
+            f"[FIELD] contour area: {round(contour_area, 1)} points: {len(cnt)}"
         )
 
         # Approximate the contour to simplify it
@@ -318,10 +324,7 @@ def extend_line_to_image_bounds(line, image_shape):
     intercept = y1 - slope * x1
 
     left_y = int(intercept)
-    print(type(slope))
-    print(type(intercept))
-    print(slope)
-    print(intercept)
+    _field_debug(f"[FIELD] line slope={slope:.4f} intercept={intercept:.2f}")
     right_y = int((slope * (width - 1)) + intercept)
 
     return [0, left_y, width - 1, right_y]
@@ -544,8 +547,8 @@ def remove_anomalous_lines_by_angle(lines, angle_tolerance=12):
         if abs(angle - best_angle) < angle_tolerance:
             filtered_lines.append(line)
 
-    print(f"[FIELD] dominant angle cluster: {round(best_angle, 2)}")
-    print(f"[FIELD] kept lines: {len(filtered_lines)} / {len(lines)}")
+    _field_debug(f"[FIELD] dominant angle cluster: {round(best_angle, 2)}")
+    _field_debug(f"[FIELD] kept lines: {len(filtered_lines)} / {len(lines)}")
 
     return filtered_lines
 
@@ -776,7 +779,7 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
 
     # Step 5: Extract straight line segments from contours (within field outline, excluding box if provided)
     straight_lines = extract_straight_lines(contours, field_outline, exclusion_box)
-    print(f"[FIELD] straight lines: {len(straight_lines)}")
+    _field_debug(f"[FIELD] straight lines: {len(straight_lines)}")
     
     if visualise_steps:
         straight_contours_img = image.copy()
@@ -786,7 +789,7 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
 
     # Step 6: Fit straight lines to the extracted segments
     contour_lines = fit_straight_lines_to_contours(straight_lines, min_length=20)
-    print(f"[FIELD] fitted contour lines: {len(contour_lines)}")
+    _field_debug(f"[FIELD] fitted contour lines: {len(contour_lines)}")
     
     if visualise_steps:
         fitted_lines_img = image.copy()
@@ -818,7 +821,7 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
     extend_line_to_image_bounds(line, image.shape)
     for line in contour_lines
 ]
-    print(f"[FIELD] extended lines: {len(extended_lines)}")
+    _field_debug(f"[FIELD] extended lines: {len(extended_lines)}")
     
     if visualise_steps:
         extended_lines_img = image.copy()
@@ -853,5 +856,5 @@ def get_field_lines(im_path, lineout_centre=None, exclusion_box=None, thresh=165
         for x1, y1, x2, y2 in final_lines:
             cv2.line(final_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         visualise_step(cv2.cvtColor(final_img, cv2.COLOR_BGR2RGB), "Final Lines After Anomaly Removal")
-    print(f"[FIELD] final lines: {len(final_lines)}")
+    _field_debug(f"[FIELD] final lines: {len(final_lines)}")
     return final_lines, field_outline

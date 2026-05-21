@@ -1,0 +1,310 @@
+{
+  "video_name": "lineout",
+  "processing_date": "2026-05-21 15:48:44",
+  "total_frames": 184,
+  "fps": 30,
+  "events": [
+    {
+      "type": "lineout",
+      "frame_number": 3,
+      "timestamp": "0.10s",
+      "detection_confidence": 0.4044252038002014,
+      "processing_stage": "offside_detection",
+      "offside_count": 0,
+      "offside_players": [],
+      "team_counts": {
+        "team_0": 9,
+        "team_1": 7,
+        "unknown_team": 0,
+        "refs": 0
+      },
+      "tracked_players": [
+        {
+          "track_id": 1,
+          "team": 0,
+          "box": [
+            458,
+            308,
+            517,
+            407
+          ],
+          "bottom_centre": [
+            487,
+            407
+          ],
+          "confidence": 0.8065789937973022
+        },
+        {
+          "track_id": 2,
+          "team": 0,
+          "box": [
+            389,
+            240,
+            438,
+            335
+          ],
+          "bottom_centre": [
+            413,
+            335
+          ],
+          "confidence": 0.802662193775177
+        },
+        {
+          "track_id": 3,
+          "team": 0,
+          "box": [
+            311,
+            331,
+            351,
+            425
+          ],
+          "bottom_centre": [
+            331,
+            425
+          ],
+          "confidence": 0.7925894856452942
+        },
+        {
+          "track_id": 4,
+          "team": 1,
+          "box": [
+            193,
+            129,
+            219,
+            217
+          ],
+          "bottom_centre": [
+            206,
+            217
+          ],
+          "confidence": 0.7793892621994019
+        },
+        {
+          "track_id": 5,
+          "team": 1,
+          "box": [
+            0,
+            73,
+            27,
+            158
+          ],
+          "bottom_centre": [
+            13,
+            158
+          ],
+          "confidence": 0.7775015234947205
+        },
+        {
+          "track_id": 6,
+          "team": 1,
+          "box": [
+            335,
+            227,
+            372,
+            320
+          ],
+          "bottom_centre": [
+            353,
+            320
+          ],
+          "confidence": 0.7717874050140381
+        },
+        {
+          "track_id": 7,
+          "team": 0,
+          "box": [
+            659,
+            106,
+            683,
+            189
+          ],
+          "bottom_centre": [
+            671,
+            189
+          ],
+          "confidence": 0.7687565684318542
+        },
+        {
+          "track_id": 8,
+          "team": 1,
+          "box": [
+            315,
+            246,
+            348,
+            332
+          ],
+          "bottom_centre": [
+            331,
+            332
+          ],
+          "confidence": 0.7405943274497986
+        },
+        {
+          "track_id": 9,
+          "team": 0,
+          "box": [
+            476,
+            107,
+            503,
+            196
+          ],
+          "bottom_centre": [
+            489,
+            196
+          ],
+          "confidence": 0.7316159009933472
+        },
+        {
+          "track_id": 10,
+          "team": 0,
+          "box": [
+            437,
+            176,
+            474,
+            274
+          ],
+          "bottom_centre": [
+            455,
+            274
+          ],
+          "confidence": 0.6739771366119385
+        },
+        {
+          "track_id": 11,
+          "team": 0,
+          "box": [
+            451,
+            131,
+            479,
+            215
+          ],
+          "bottom_centre": [
+            465,
+            215
+          ],
+          "confidence": 0.6454124450683594
+        },
+        {
+          "track_id": 12,
+          "team": 0,
+          "box": [
+            81,
+            22,
+            111,
+            78
+          ],
+          "bottom_centre": [
+            96,
+            78
+          ],
+          "confidence": 0.6397347450256348
+        },
+        {
+          "track_id": 13,
+          "team": 1,
+          "box": [
+            369,
+            103,
+            398,
+            190
+          ],
+          "bottom_centre": [
+            383,
+            190
+          ],
+          "confidence": 0.6192816495895386
+        },
+        {
+          "track_id": 14,
+          "team": 1,
+          "box": [
+            395,
+            94,
+            424,
+            180
+          ],
+          "bottom_centre": [
+            409,
+            180
+          ],
+          "confidence": 0.6114680767059326
+        },
+        {
+          "track_id": 15,
+          "team": 0,
+          "box": [
+            458,
+            108,
+            489,
+            204
+          ],
+          "bottom_centre": [
+            473,
+            204
+          ],
+          "confidence": 0.45051872730255127
+        },
+        {
+          "track_id": 16,
+          "team": 1,
+          "box": [
+            358,
+            135,
+            385,
+            229
+          ],
+          "bottom_centre": [
+            371,
+            229
+          ],
+          "confidence": 0.43965229392051697
+        }
+      ],
+      "errors": [],
+      "lineout_confidence": 0.4044252038002014
+    }
+  ],
+  "logs": [
+    {
+      "timestamp": "2026-05-21T15:48:46",
+      "level": "INFO",
+      "stage": "offside_detection",
+      "message": "Lineout event recorded with 0 offside players",
+      "event_type": "lineout",
+      "frame_number": 3,
+      "confidence": 0.4044252038002014,
+      "player_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_events": 1,
+    "ruck_count": 0,
+    "lineout_count": 1,
+    "total_offside_players": 0,
+    "average_confidence": 0.4044252038002014
+  },
+  "source_video": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\lineouts\\lineout.mp4",
+  "output_files": {
+    "report": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\lineouts\\lineout_analysis_report.txt",
+    "json": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\lineouts\\lineout_analysis.json",
+    "annotated_video": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\lineouts\\lineout_annotated.mp4"
+  }
+}

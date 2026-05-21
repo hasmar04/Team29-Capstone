@@ -1,0 +1,166 @@
+{
+  "video_name": "ruck",
+  "processing_date": "2026-05-21 15:22:18",
+  "total_frames": 335,
+  "fps": 30,
+  "events": [
+    {
+      "type": "ruck",
+      "frame_number": 165,
+      "timestamp": "5.50s",
+      "detection_confidence": 0.12915609776973724,
+      "processing_stage": "offside_detection",
+      "offside_count": 0,
+      "offside_players": [],
+      "team_counts": {
+        "team_0": 5,
+        "team_1": 2,
+        "unknown_team": 0,
+        "refs": 0
+      },
+      "tracked_players": [
+        {
+          "track_id": 1,
+          "team": 0,
+          "box": [
+            734,
+            363,
+            800,
+            449
+          ],
+          "bottom_centre": [
+            767,
+            449
+          ],
+          "confidence": 0.7880094647407532
+        },
+        {
+          "track_id": 2,
+          "team": 1,
+          "box": [
+            112,
+            199,
+            281,
+            332
+          ],
+          "bottom_centre": [
+            196,
+            332
+          ],
+          "confidence": 0.7827568650245667
+        },
+        {
+          "track_id": 3,
+          "team": 0,
+          "box": [
+            760,
+            75,
+            800,
+            180
+          ],
+          "bottom_centre": [
+            780,
+            180
+          ],
+          "confidence": 0.6580427885055542
+        },
+        {
+          "track_id": 4,
+          "team": 0,
+          "box": [
+            0,
+            45,
+            50,
+            259
+          ],
+          "bottom_centre": [
+            25,
+            259
+          ],
+          "confidence": 0.5135877132415771
+        },
+        {
+          "track_id": 5,
+          "team": 1,
+          "box": [
+            304,
+            219,
+            468,
+            352
+          ],
+          "bottom_centre": [
+            386,
+            352
+          ],
+          "confidence": 0.49673932790756226
+        },
+        {
+          "track_id": 6,
+          "team": 0,
+          "box": [
+            731,
+            153,
+            799,
+            290
+          ],
+          "bottom_centre": [
+            765,
+            290
+          ],
+          "confidence": 0.43326032161712646
+        },
+        {
+          "track_id": 7,
+          "team": 0,
+          "box": [
+            767,
+            158,
+            800,
+            378
+          ],
+          "bottom_centre": [
+            783,
+            378
+          ],
+          "confidence": 0.41790953278541565
+        }
+      ],
+      "errors": [],
+      "ruck_confidence": 0.12915609776973724
+    }
+  ],
+  "logs": [
+    {
+      "timestamp": "2026-05-21T15:22:25",
+      "level": "INFO",
+      "stage": "offside_detection",
+      "message": "Ruck event recorded with 0 offside players",
+      "event_type": "ruck",
+      "frame_number": 165,
+      "confidence": 0.12915609776973724,
+      "player_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_events": 1,
+    "ruck_count": 1,
+    "lineout_count": 0,
+    "total_offside_players": 0,
+    "average_confidence": 0.12915609776973724
+  },
+  "source_video": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\rucks\\ruck.mp4",
+  "output_files": {
+    "report": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\rucks\\ruck_analysis_report.txt",
+    "json": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\rucks\\ruck_analysis.json",
+    "annotated_video": "C:\\Users\\User\\Desktop\\Fresh\\Team29-Capstone\\inference\\rucks\\ruck_annotated.mp4"
+  }
+}
