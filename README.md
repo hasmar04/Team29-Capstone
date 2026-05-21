@@ -44,7 +44,7 @@ import yolo_functions as YOLO
 ruck_model = YOLO.load_model('./models/ruck.pt')
 lineout_model = YOLO.load_model('./models/lineout.pt')
 ball_model = YOLO.load_model('./models/ball.pt')
-player_model = YOLO.load_model('./models/yolo11n.pt')
+player_model = YOLO.load_model('./models/player-id.pt')
 
 # Process videos
 batch.process_video_batch(
