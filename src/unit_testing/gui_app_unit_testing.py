@@ -551,7 +551,7 @@ class TestDisplayReportDetails(unittest.TestCase):
 
         self.assertIn("test.mp4", content)
         self.assertIn("Ruck", content)
-        self.assertIn("0.95", content)
+        self.assertIn("95.0%", content)
         self.assertIn("Total Ruck Events: 1", content)
         self.assertIn("Total Offside Players: 2", content)
 
@@ -577,7 +577,7 @@ class TestDisplayReportDetails(unittest.TestCase):
         gui.report_details_text.configure(state="disabled")
 
         self.assertIn("empty.mp4", content)
-        self.assertIn("Total Ruck Events: 0", content)
+        self.assertIn("Rucks: 0", content)
 
 
 if __name__ == "__main__":
