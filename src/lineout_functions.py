@@ -1,7 +1,7 @@
 """
 lineout_functions.py
 --------------------
-This module provides functions for detecting and processing lineouts in rugby video analytics. It includes logic for tracking the ball, identifying the frame of ball release during a lineout, and managing detection state and cooldowns. The functions are designed to work with YOLO model outputs and OpenCV for video analysis and visualization.
+This module provides functions for detecting and processing lineouts in rugby video analytics. It includes logic for tracking the ball, identifying the frame of ball release during a lineout, and managing detection state and cooldowns. The functions are designed to work with YOLO model outputs and OpenCV for video analysis and visualisation.
 
 Functions:
 ---------------
