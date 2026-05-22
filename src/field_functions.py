@@ -30,7 +30,7 @@ Dependencies:
 - OpenCV (`cv2`)
 - NumPy (`numpy`)
 - scikit-learn (`KMeans`, `DBSCAN`)
-- matplotlib (for optional visualization)
+- matplotlib (for optional visualisation)
 - general_functions, line_functions
 """
 

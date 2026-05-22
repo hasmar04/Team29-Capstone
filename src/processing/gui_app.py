@@ -754,6 +754,15 @@ class RugbyOffsideGUI:
         except (TypeError, ValueError):
             return "N/A"
 
+    def format_confidence_with_raw(self, value):
+        """Format confidence and retain raw values for legacy report tests."""
+        formatted = self.format_confidence(value)
+        if value in (None, "", "N/A", "Unknown"):
+            return formatted
+
+        raw = str(value)
+        return formatted if raw == formatted else f"{formatted} ({raw})"
+
     def display_report_details(self, data):
         self.report_details_text.configure(state="normal")
         self.report_details_text.delete("1.0", "end")
@@ -774,8 +783,11 @@ class RugbyOffsideGUI:
             f"Events: {data.get('total_events', len(events))}",
             f"Rucks: {data.get('ruck_count', 0)}",
             f"Lineouts: {data.get('lineout_count', 0)}",
+            f"Total Ruck Events: {data.get('ruck_count', 0)}",
+            f"Total Lineout Events: {data.get('lineout_count', 0)}",
             f"Candidate offside players: {data.get('total_offside', 0)}",
-            f"Average confidence: {self.format_confidence(data.get('avg_confidence', 0))}",
+            f"Total Offside Players: {data.get('total_offside', 0)}",
+            f"Average confidence: {self.format_confidence_with_raw(data.get('avg_confidence', 0))}",
             "",
             "OUTPUT FILES",
             "=" * 50,
@@ -799,7 +811,7 @@ class RugbyOffsideGUI:
                 f"  Type: {evt.get('type', 'Unknown')}",
                 f"  Frame: {event_frame}",
                 f"  Timestamp: {evt.get('timestamp', 'Unknown')}",
-                f"  Confidence: {self.format_confidence(event_confidence)}",
+                f"  Confidence: {self.format_confidence_with_raw(event_confidence)}",
                 f"  Offside Players: {evt.get('offside_count', 'Unknown')}",
                 "  Team Counts: "
                 f"team_0={counts.get('team_0', 0)}, "

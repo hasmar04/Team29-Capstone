@@ -125,7 +125,7 @@ def shortest_distance_between_lines(line1, line2):
 
 def main():
     """
-    Example workflow for field mapping, visualization, and homography application.
+    Example workflow for field mapping, visualisation, and homography application.
     Loads an image, detects field lines and points, computes a homography, visualizes detected and transformed points/lines, and displays the results.
     """
     im_path = 'inference/camera_callibration/frame_0002.jpg'
@@ -172,7 +172,7 @@ def main():
 
     draw.draw_points(lineout_image, offside_points, point_colour=(255, 0, 0), radius=5, window_title="Lineout Offside Points")
 
-    # Transform the detected lines with debugging and visualization
+    # Transform the detected lines with debugging and visualisation
     transformed_lines = pf.transform_lines(field_lines, H)
 
     # Create a blank canvas

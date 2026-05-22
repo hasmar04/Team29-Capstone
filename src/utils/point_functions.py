@@ -1,7 +1,7 @@
 """
 point_functions.py
 -----------------
-This module provides functions and data structures for mapping rugby field lines and points in image and top-down coordinates. It includes a dictionary of standard field points, utilities for extracting and matching field features from images, computing homography matrices for perspective transformation, and transforming lines and points between image and field coordinates. The module is designed to support computer vision tasks such as field registration, offside line calculation, and visualization in rugby analytics.
+This module provides functions and data structures for mapping rugby field lines and points in image and top-down coordinates. It includes a dictionary of standard field points, utilities for extracting and matching field features from images, computing homography matrices for perspective transformation, and transforming lines and points between image and field coordinates. The module is designed to support computer vision tasks such as field registration, offside line calculation, and visualisation in rugby analytics.
 
 Key Functions:
 ---------------

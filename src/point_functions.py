@@ -1,7 +1,7 @@
 """
 point_functions.py
 -----------------
-This module provides functions and data structures for mapping rugby field lines and points in image and top-down coordinates. It includes a dictionary of standard field points, utilities for extracting and matching field features from images, computing homography matrices for perspective transformation, and transforming lines and points between image and field coordinates. The module is designed to support computer vision tasks such as field registration, offside line calculation, and visualization in rugby analytics.
+This module provides functions and data structures for mapping rugby field lines and points in image and top-down coordinates. It includes a dictionary of standard field points, utilities for extracting and matching field features from images, computing homography matrices for perspective transformation, and transforming lines and points between image and field coordinates. The module is designed to support computer vision tasks such as field registration, offside line calculation, and visualisation in rugby analytics.
 
 Key Functions:
 ---------------
@@ -62,7 +62,7 @@ def get_lineout_offside_points(lineout_centre, H):
     lineout_centre_homogeneous = np.array([lineout_centre[0], lineout_centre[1], 1], dtype=np.float32)
     # Apply the homography
     lineout_centre = np.dot(H, lineout_centre_homogeneous)
-    # Normalize to get (x, y) coordinates
+    # Normalise to get (x, y) coordinates
     lineout_centre /= lineout_centre[2]
 
     # Get the lineout offside points 10m from the lineout centre
@@ -75,7 +75,7 @@ def get_lineout_offside_points(lineout_centre, H):
     left_offside_point_homogeneous = np.dot(H_inv, left_offside_point_top_down)
     right_offside_point_homogeneous = np.dot(H_inv, right_offside_point_top_down)
 
-    # Normalize to get (x, y) coordinates
+    # Normalise to get (x, y) coordinates
     left_offside_point = left_offside_point_homogeneous[:2] / left_offside_point_homogeneous[2]
     right_offside_point = right_offside_point_homogeneous[:2] / right_offside_point_homogeneous[2]
 
@@ -108,12 +108,12 @@ def transform_lines(lines, H):
         p1_trans = np.dot(H, p1)
         p2_trans = np.dot(H, p2)
 
-        # Check for valid normalization
+        # Check for valid normalisation
         if p1_trans[2] == 0 or p2_trans[2] == 0:
-            print(f"Warning: Homogeneous coordinate is zero for line {i + 1}. Skipping normalization.")
+            print(f"Warning: Homogeneous coordinate is zero for line {i + 1}. Skipping normalisation.")
             continue
 
-        # Normalize to get (x, y) coordinates
+        # Normalise to get (x, y) coordinates
         p1_trans /= p1_trans[2]
         p2_trans /= p2_trans[2]
 
