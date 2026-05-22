@@ -210,6 +210,7 @@ __marimo__/
 # Test/output artifacts
 inference/mixed/
 *_output/
+*_analysis.json
 
 # Allow pytest.ini
 !pytest.ini
