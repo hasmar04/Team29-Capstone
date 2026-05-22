@@ -8,6 +8,15 @@ This repository contains a Python computer-vision pipeline and desktop GUI for r
 
 The system is designed as an assistive review tool, not as an autonomous referee. It combines custom YOLO models, field-line geometry, ByteTrack player tracking, jersey-colour team classification, and report generation to highlight possible offside incidents in rugby footage.
 
+## End-user Installation
+
+1. Dowload the latest release zip from the GitHub repository for your operating system: [Team29-Capstone Releases](https://github.com/hasmar04/Team29-Capstone/releases)
+2. Extract the zip to a location on your local machine that is easy to access. 
+   - Note! Do not separate the files within the zip archive. Moving individual files will break the program. 
+3. Click on the 'app' file to start the program
+
+### Development Installation
+
 Primary use cases:
 
 - Process a single clip in manual or automatic mode.
@@ -66,6 +75,25 @@ models/
   lineout.pt
   ball.pt
   player-id.pt
+```python
+import batch_processor as batch
+import yolo_functions as YOLO
+
+# Load models
+ruck_model = YOLO.load_model('./models/ruck.pt')
+lineout_model = YOLO.load_model('./models/lineout.pt')
+ball_model = YOLO.load_model('./models/ball.pt')
+player_model = YOLO.load_model('./models/player-id.pt')
+
+# Process videos
+batch.process_video_batch(
+    input_path='./my_videos',
+    output_dir='./results',
+    ruck_model=ruck_model,
+    lineout_model=lineout_model,
+    ball_model=ball_model,
+    player_model=player_model
+)
 ```
 
 Run commands from the repository root so `src` imports resolve consistently:
@@ -240,6 +268,7 @@ python -m pytest src/unit_testing/player_detection_unit_testing.py
 The test suite is configured by `pytest.ini` to discover files ending in `_unit_testing.py`.
 
 ## Known Limitations
+See [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)
 
 - Offside decisions are candidate detections and still require human review.
 - Accuracy depends heavily on camera angle, frame resolution, lighting, occlusion, and model training coverage.

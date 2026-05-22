@@ -9,13 +9,24 @@
 - **Logging**: Comprehensive processing logs with timestamps
 - **Model Status**: Real-time model loading status
 
-## Quick Start
+## Quick Start - End User
+
+1. Dowload the latest release zip from the GitHub repository for your operating system: [Team29-Capstone Releases](https://github.com/hasmar04/Team29-Capstone/releases)
+2. Extract the zip to a location on your local machine that is easy to access. 
+   - Note! Do not separate the files within the zip archive. Moving individual files will break the program. 
+3. Click on the 'app' file to start the program
+
+## Quick Start - Development
 
 Python needs to be installed on your system. It can be downloaded from the [Python Website](https://www.python.org/downloads/)
 
 ### Windows Users
 1. Double-click `run_gui.bat` to launch the GUI
 2. Or run `python run_gui.py` from command prompt
+
+### Mac and Linux Users
+1. Open the Terminal in the current folder where this repository is downloaded
+2. Run `python run_gui.py`
 
 ## GUI Components
 
@@ -77,19 +88,7 @@ Python needs to be installed on your system. It can be downloaded from the [Pyth
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **"Models are still loading"**
-   - Wait for YOLO models to load completely
-   - Check that model files exist in `models/` directory
-
-2. **"No video file selected"**
-   - Ensure you've selected a valid video file
-   - Check file format (supports .mp4, .avi, .mov, .gif)
-
-3. **"Processing failed"**
-   - Check the processing log for detailed error messages
-   - Ensure all dependencies are installed: `pip install -r requirements.txt`
+See [Troubleshooting Guide](<docs/Troubleshooting Guide.md>)
 
 ### System Requirements
 
@@ -101,27 +100,12 @@ Python needs to be installed on your system. It can be downloaded from the [Pyth
 ## Advanced Configuration
 
 ### Model Files Required
-- `models/ruck.pt` - Ruck detection model
-- `models/lineout.pt` - Lineout detection model  
-- `models/ball.pt` - Ball detection model
-- `models/yolo11n.pt` - Player detection model
+- **ball.pt**: Specialised ball tracking
+- **lineout.pt**: Detects lineout formations, hooker position
+- **player-id**: Detects players and refs
+- **ruck.pt**: Detects ruck formations and ball position
 
 ### Output Settings
 - Videos are processed at 800x450 resolution
 - Overlay duration: 5 seconds per detection
 - Automatic threshold: 120 for field line detection
-
-## Support
-
-For technical support or questions:
-1. Check the processing log for error details
-2. Ensure all dependencies are properly installed
-3. Verify model files are present and valid
-4. Check that video files are in supported formats
-
-## Keyboard Shortcuts (During Video Processing)
-
-- `P` - Pause/Resume video playback
-- `Q` - Quit processing
-- `L` - Detect lineout (Manual mode only)
-- `R` - Detect ruck (Manual mode only)
