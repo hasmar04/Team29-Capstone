@@ -10,7 +10,7 @@ The system is designed as an assistive review tool, not as an autonomous referee
 
 ## End-user Installation
 
-1. Dowload the latest release zip from the GitHub repository for your operating system: [Team29-Capstone Releases](https://github.com/hasmar04/Team29-Capstone/releases)
+1. Download the latest release zip from the GitHub repository for your operating system: [Team29-Capstone Releases](https://github.com/hasmar04/Team29-Capstone/releases)
 2. Extract the zip to a location on your local machine that is easy to access. 
    - Note! Do not separate the files within the zip archive. Moving individual files will break the program. 
 3. Click on the 'app' file to start the program
@@ -41,7 +41,7 @@ src/
 
 Legacy top-level modules such as `src/player_detection.py` and `src/batch_processor.py` are retained for compatibility with older tests and scripts. New development should prefer the modular folders above.
 
-See [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) for the full architecture notes.
+See [SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) for the full architecture notes and [SYSTEM_ARCHITECTURE_DIAGRAM.md](docs/system_architecture/SYSTEM_ARCHITECTURE_DIAGRAM.md) for the diagram.
 
 ## Installation
 
@@ -75,56 +75,35 @@ models/
   lineout.pt
   ball.pt
   player-id.pt
-```python
-import batch_processor as batch
-import yolo_functions as YOLO
-
-# Load models
-ruck_model = YOLO.load_model('./models/ruck.pt')
-lineout_model = YOLO.load_model('./models/lineout.pt')
-ball_model = YOLO.load_model('./models/ball.pt')
-player_model = YOLO.load_model('./models/player-id.pt')
-
-# Process videos
-batch.process_video_batch(
-    input_path='./my_videos',
-    output_dir='./results',
-    ruck_model=ruck_model,
-    lineout_model=lineout_model,
-    ball_model=ball_model,
-    player_model=player_model
-)
 ```
 
-Run commands from the repository root so `src` imports resolve consistently:
+### Processing Modes
 
-```bash
-cd Team29-Capstone
-```
+#### 1. Batch Processing
 
-VS Code users should select the virtual environment interpreter and run tests with `python -m pytest`, which honours `pytest.ini`.
+Process multiple videos automatically with comprehensive reporting:
 
-## Running the System
+- Mass input of video footage from directories
+- Fully automated detection without user interaction
+- Confidence level tracking for all detections
+- Annotated video output with highlighted offside players and lines
+- Detailed text reports for each video with statistics
 
-Launch the GUI:
+**Use case**: Analysing multiple match recordings overnight
 
-```bash
-python run_gui.py
-```
+#### 2. Auto Mode
 
-or:
+Single video processing with automatic detection:
 
-```bash
-.\run_gui.bat
-```
+- Real-time ruck and lineout detection
+- Automatic offside line calculation
+- Interactive threshold selection
 
-Run the CLI pipeline:
+**Use case**: Quick analysis of a single match
 
-```bash
-python -m src.processing.main
-```
+#### 3. Manual Mode
 
-The CLI offers:
+Frame-by-frame control for detailed analysis:
 
 - `manual`: user-triggered ruck or lineout analysis on a single clip.
 - `auto`: automatic event detection on a single clip.
@@ -147,7 +126,7 @@ The backend pipeline follows this flow:
 11. Identify players between offside lines.
 12. Generate annotated clips, text reports, JSON summaries, and GUI payloads.
 
-See [BACKEND_PIPELINE.md](BACKEND_PIPELINE.md) for module-level detail.
+See [BACKEND_PIPELINE.md](docs/BACKEND_PIPELINE.md) for module-level detail.
 
 ## Frontend Integration
 
@@ -201,18 +180,28 @@ results = batch.process_video_batch(
 )
 ```
 
-See [BATCH_PROCESSING_GUIDE.md](BATCH_PROCESSING_GUIDE.md).
+See [BATCH_PROCESSING_GUIDE.md](docs/BATCH_PROCESSING_GUIDE.md).
 
 ## YOLO Models
 
-The project uses custom-trained YOLO model files:
+The system uses custom-trained YOLO models:
 
 - `ruck.pt`: detects ruck formations.
 - `lineout.pt`: detects lineout formations and hooker classes where available.
 - `ball.pt`: detects the ball for release/context checks.
 - `player-id.pt`: detects players, people, and referee/official classes depending on training labels.
 
-Inference is centralised in `src/detection/yolo_functions.py`. Model training guidance and handover notes are in [MODEL_TRAINING_GUIDE.md](MODEL_TRAINING_GUIDE.md).
+Inference is centralised in `src/detection/yolo_functions.py`. Model training guidance and handover notes are in [MODEL_TRAINING_GUIDE.md](docs/MODEL_TRAINING_GUIDE.md).
+
+## Documentation
+
+- [GUI_README.md](docs/GUI_README.md): GUI usage and launcher notes.
+- [BATCH_PROCESSING_GUIDE.md](docs/BATCH_PROCESSING_GUIDE.md): batch-mode usage and outputs.
+- [BACKEND_PIPELINE.md](docs/BACKEND_PIPELINE.md): backend processing flow.
+- [SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md): architecture overview.
+- [SYSTEM_ARCHITECTURE_DIAGRAM.md](docs/system_architecture/SYSTEM_ARCHITECTURE_DIAGRAM.md): architecture diagram.
+- [MODEL_TRAINING_GUIDE.md](docs/MODEL_TRAINING_GUIDE.md): model training and evaluation notes.
+- [TROUBLESHOOTING_GUIDE.md](docs/TROUBLESHOOTING_GUIDE.md): common setup and runtime issues.
 
 ## Player Detection, Tracking, and Team Classification
 
@@ -268,7 +257,6 @@ python -m pytest src/unit_testing/player_detection_unit_testing.py
 The test suite is configured by `pytest.ini` to discover files ending in `_unit_testing.py`.
 
 ## Known Limitations
-See [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training)
 
 - Offside decisions are candidate detections and still require human review.
 - Accuracy depends heavily on camera angle, frame resolution, lighting, occlusion, and model training coverage.
@@ -297,7 +285,7 @@ Recommended next handover tasks:
 - Run tests in the target VS Code environment.
 - Process a short known clip and inspect both the annotated video and JSON payload.
 - Review `2025-2026-Handover/` for project partner and design context.
-- Keep new documentation in root-level Markdown files so future teams can find it quickly.
+- Keep new documentation in `docs/` so future teams can find it quickly.
 
 ## Contributors
 
