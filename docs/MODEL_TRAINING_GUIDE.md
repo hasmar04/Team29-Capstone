@@ -41,6 +41,8 @@ Recommended event labels:
 
 ## Training Workflow
 
+- See [Team29-Capstone-Training](https://github.com/hasmar04/Team29-Capstone-Training) for additional instructions
+
 1. Collect representative footage and still frames.
 2. Split into train/validation/test sets by match or clip, not by adjacent frames only.
 3. Annotate boxes consistently.
